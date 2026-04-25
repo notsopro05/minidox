@@ -1,0 +1,2680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MINIDOX - PDF & Doc Analytics</title>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   GLOBAL RESET & BASE
+============================================================ */
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --blue:#2626e6;--blue-dark:#1a1ab8;--blue-light:#4f4ff0;
+  --lime:#c8ff00;--lime-dark:#a8d900;
+  --white:#ffffff;--black:#0a0a0a;--gray:#6b7280;--gray-light:#f3f4f6;
+  --cream:#fdf8f0;--pale-blue:#e8f0fe;--yellow:#fefce8;--mint:#f0fdf4;
+  --font-body:letter-spacing:0;word-spacing:0;line-height:1.6;
+  --ls:0em;--ws:0em;--lh:1.6;--ps:1rem;
+  --reading-font:'Lexend',sans-serif;
+  --bg-tint:#ffffff;
+  --highlight-color:rgba(250,204,21,0.5);
+}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',sans-serif;background:#fff;color:#0a0a0a;overflow-x:hidden}
+.page{display:none;min-height:100vh}
+.page.active{display:block}
+
+/* ============================================================
+   SCROLLBAR
+============================================================ */
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-track{background:#f1f1f1}
+::-webkit-scrollbar-thumb{background:#2626e6;border-radius:3px}
+
+/* ============================================================
+   NAVIGATION
+============================================================ */
+.nav{
+  position:fixed;top:0;left:0;right:0;z-index:1000;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:1rem 2.5rem;
+  background:rgba(255,255,255,0.92);
+  backdrop-filter:blur(20px);
+  border-bottom:1px solid rgba(38,38,230,0.1);
+  transition:all 0.3s ease;
+}
+.nav.scrolled{padding:0.7rem 2.5rem;box-shadow:0 4px 30px rgba(0,0,0,0.08)}
+.nav-logo{
+  display:flex;align-items:center;gap:0.6rem;
+  font-weight:800;font-size:1.3rem;color:#0a0a0a;cursor:pointer;
+}
+.nav-logo svg{width:36px;height:36px}
+.nav-links{display:flex;align-items:center;gap:0.3rem;list-style:none}
+.nav-links a{
+  padding:0.5rem 1rem;border-radius:8px;
+  font-weight:500;font-size:0.9rem;color:#374151;
+  cursor:pointer;transition:all 0.2s;text-decoration:none;
+}
+.nav-links a:hover,.nav-links a.active{background:#2626e6;color:#fff}
+.nav-cta{
+  background:#c8ff00;color:#0a0a0a;border:none;
+  padding:0.6rem 1.4rem;border-radius:8px;
+  font-weight:700;font-size:0.9rem;cursor:pointer;
+  transition:all 0.2s;letter-spacing:0.02em;
+}
+.nav-cta:hover{background:#a8d900;transform:translateY(-1px)}
+.nav-hamburger{display:none;flex-direction:column;gap:5px;cursor:pointer;background:none;border:none;padding:4px}
+.nav-hamburger span{display:block;width:24px;height:2px;background:#0a0a0a;border-radius:2px;transition:all 0.3s}
+
+/* ============================================================
+   PAGE 1 — LANDING / COVER
+============================================================ */
+#page-home{
+  position:relative;overflow:hidden;
+  background:#fff;
+}
+.hero-cover{
+  min-height:100vh;display:grid;grid-template-columns:1fr 1fr;
+  align-items:center;padding:0 2.5rem;padding-top:80px;
+  position:relative;
+}
+/* Blue blob */
+.hero-blob{
+  position:absolute;right:-80px;top:-80px;
+  width:600px;height:600px;border-radius:50%;
+  background:radial-gradient(circle at center,#2626e6 0%,#4f4ff0 40%,rgba(79,79,240,0) 70%);
+  opacity:0.18;pointer-events:none;
+  animation:blobPulse 6s ease-in-out infinite;
+}
+@keyframes blobPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+.hero-blob-2{
+  position:absolute;right:80px;top:80px;
+  width:500px;height:500px;border-radius:50%;
+  background:radial-gradient(circle at center,#2626e6 0%,rgba(38,38,230,0) 60%);
+  opacity:0.22;pointer-events:none;
+}
+/* Bottom blue bar */
+.hero-bottom-bar{
+  position:absolute;bottom:0;left:0;right:0;height:80px;
+  background:#2626e6;display:flex;align-items:center;justify-content:center;
+}
+.hero-bottom-bar p{color:rgba(255,255,255,0.6);font-size:0.85rem;letter-spacing:0.1em;text-transform:uppercase}
+
+/* Left content */
+.hero-left{position:relative;z-index:2;padding:4rem 0}
+.hero-badge{
+  display:inline-flex;align-items:center;gap:0.5rem;
+  background:#f3f4f6;border:1px solid #e5e7eb;border-radius:100px;
+  padding:0.35rem 0.9rem;margin-bottom:1.5rem;
+  font-size:0.8rem;font-weight:600;color:#374151;
+}
+.hero-badge svg{width:16px;height:16px}
+.hero-logo-line{
+  display:flex;align-items:center;gap:0.8rem;
+  font-size:0.85rem;font-weight:600;color:#6b7280;
+  letter-spacing:0.05em;text-transform:uppercase;
+  margin-bottom:1rem;
+}
+.hero-logo-line svg{width:28px;height:28px;opacity:0.7}
+h1.hero-title{
+  font-size:clamp(4rem,9vw,8rem);font-weight:900;
+  line-height:0.95;letter-spacing:-0.03em;color:#0a0a0a;
+  margin-bottom:1rem;
+}
+.hero-subtitle-big{
+  font-size:clamp(1rem,2.5vw,1.5rem);font-weight:700;
+  color:#2626e6;letter-spacing:0.02em;text-transform:uppercase;
+  margin-bottom:2rem;
+}
+.hero-cta-row{display:flex;align-items:center;gap:1rem;flex-wrap:wrap}
+.btn-lime{
+  display:inline-flex;align-items:center;gap:0.5rem;
+  background:#c8ff00;color:#0a0a0a;border:2px solid #0a0a0a;
+  padding:0.9rem 2rem;border-radius:0;
+  font-weight:800;font-size:0.9rem;letter-spacing:0.08em;
+  text-transform:uppercase;cursor:pointer;
+  transition:all 0.2s;text-decoration:none;
+}
+.btn-lime:hover{background:#a8d900;transform:translate(-2px,-2px);box-shadow:4px 4px 0 #0a0a0a}
+.btn-outline-dark{
+  display:inline-flex;align-items:center;gap:0.5rem;
+  background:transparent;color:#0a0a0a;border:2px solid #0a0a0a;
+  padding:0.9rem 2rem;border-radius:0;
+  font-weight:700;font-size:0.9rem;letter-spacing:0.05em;
+  text-transform:uppercase;cursor:pointer;
+  transition:all 0.2s;
+}
+.btn-outline-dark:hover{background:#0a0a0a;color:#fff;transform:translate(-2px,-2px);box-shadow:4px 4px 0 #2626e6}
+
+/* Right doc illustration */
+.hero-right{
+  position:relative;z-index:2;
+  display:flex;align-items:center;justify-content:center;
+  padding:4rem 0;
+}
+.doc-stack{position:relative;width:320px;height:320px}
+.doc-card{
+  position:absolute;
+  background:#fff;border-radius:16px;
+  box-shadow:0 20px 60px rgba(0,0,0,0.12);
+  padding:1.5rem;
+  animation:float 4s ease-in-out infinite;
+}
+.doc-card:nth-child(1){
+  width:180px;bottom:20px;left:0;
+  animation-delay:0s;
+  border:2px solid rgba(38,38,230,0.2);
+}
+.doc-card:nth-child(2){
+  width:160px;top:30px;right:10px;
+  animation-delay:0.8s;
+  border:2px solid rgba(38,38,230,0.15);
+}
+.doc-card:nth-child(3){
+  width:140px;top:130px;right:0;
+  animation-delay:1.6s;
+  border:2px solid rgba(38,38,230,0.1);
+}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+.doc-badge{
+  display:inline-block;padding:0.3rem 0.7rem;border-radius:8px;
+  font-size:0.75rem;font-weight:800;letter-spacing:0.05em;margin-bottom:0.8rem;
+}
+.doc-badge.pdf{background:#2626e6;color:#fff}
+.doc-badge.doc{background:#f3f4f6;color:#374151}
+.doc-lines div{height:6px;border-radius:3px;background:#e5e7eb;margin-bottom:6px}
+.doc-lines div:nth-child(2){width:70%}
+.doc-lines div:nth-child(3){width:85%}
+.doc-check{
+  position:absolute;bottom:-8px;right:-8px;
+  width:28px;height:28px;border-radius:50%;
+  background:#c8ff00;display:flex;align-items:center;justify-content:center;
+  font-size:14px;border:2px solid #0a0a0a;
+}
+
+/* Stars / sparkles */
+.sparkle{
+  position:absolute;color:#2626e6;font-size:1.5rem;
+  animation:spin 8s linear infinite;
+}
+.sparkle:nth-child(1){top:10%;right:15%}
+.sparkle:nth-child(2){bottom:25%;left:5%;animation-delay:2s;font-size:1rem}
+@keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+
+/* Stats row */
+.stats-row{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:2rem;
+  padding:3rem 2.5rem;border-top:1px solid #e5e7eb;
+  border-bottom:4px solid #2626e6;
+}
+.stat-item{text-align:center}
+.stat-num{font-size:2.5rem;font-weight:900;color:#2626e6;line-height:1}
+.stat-label{font-size:0.85rem;color:#6b7280;margin-top:0.3rem;font-weight:500}
+
+/* Features marquee */
+.marquee-wrap{background:#2626e6;padding:1rem 0;overflow:hidden}
+.marquee-track{
+  display:flex;gap:3rem;white-space:nowrap;
+  animation:marqueeScroll 20s linear infinite;
+}
+.marquee-item{
+  display:flex;align-items:center;gap:0.7rem;
+  color:#fff;font-weight:600;font-size:0.9rem;
+  letter-spacing:0.05em;flex-shrink:0;
+}
+.marquee-dot{width:6px;height:6px;border-radius:50%;background:#c8ff00;flex-shrink:0}
+@keyframes marqueeScroll{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+
+/* Features grid */
+.features-section{padding:5rem 2.5rem;background:#f9fafb}
+.section-header{text-align:center;margin-bottom:3.5rem}
+.section-tag{
+  display:inline-block;background:#2626e6;color:#fff;
+  padding:0.3rem 1rem;border-radius:100px;
+  font-size:0.8rem;font-weight:700;letter-spacing:0.08em;
+  text-transform:uppercase;margin-bottom:1rem;
+}
+.section-title{font-size:clamp(2rem,4vw,3rem);font-weight:900;color:#0a0a0a;line-height:1.1}
+.features-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  gap:1.5rem;max-width:1200px;margin:0 auto;
+}
+.feat-card{
+  background:#fff;border-radius:16px;padding:2rem;
+  border:1px solid #e5e7eb;
+  transition:all 0.3s ease;cursor:pointer;
+  position:relative;overflow:hidden;
+}
+.feat-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,#2626e6,#c8ff00);
+  transform:scaleX(0);transform-origin:left;transition:transform 0.3s;
+}
+.feat-card:hover{transform:translateY(-4px);box-shadow:0 20px 40px rgba(38,38,230,0.1)}
+.feat-card:hover::before{transform:scaleX(1)}
+.feat-icon{
+  width:52px;height:52px;border-radius:12px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.5rem;margin-bottom:1.2rem;
+}
+.feat-icon.blue{background:#eff6ff}
+.feat-icon.lime{background:#f7ffe0}
+.feat-icon.purple{background:#f5f3ff}
+.feat-icon.orange{background:#fff7ed}
+.feat-icon.green{background:#f0fdf4}
+.feat-icon.pink{background:#fdf2f8}
+.feat-card h3{font-size:1.05rem;font-weight:700;color:#0a0a0a;margin-bottom:0.5rem}
+.feat-card p{font-size:0.875rem;color:#6b7280;line-height:1.6}
+
+/* How it works */
+.how-section{padding:5rem 2.5rem;background:#fff}
+.steps-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:2rem;max-width:900px;margin:0 auto;
+  position:relative;
+}
+.step-card{text-align:center;padding:2rem 1.5rem}
+.step-num{
+  width:56px;height:56px;border-radius:50%;
+  background:#2626e6;color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.3rem;font-weight:900;margin:0 auto 1.2rem;
+}
+.step-card h3{font-weight:700;margin-bottom:0.5rem;color:#0a0a0a}
+.step-card p{font-size:0.875rem;color:#6b7280;line-height:1.6}
+
+/* CTA Banner */
+.cta-banner{
+  background:#2626e6;padding:5rem 2.5rem;text-align:center;
+  position:relative;overflow:hidden;
+}
+.cta-banner::before{
+  content:'';position:absolute;
+  width:400px;height:400px;border-radius:50%;
+  background:rgba(200,255,0,0.1);
+  top:-100px;left:-100px;
+}
+.cta-banner::after{
+  content:'';position:absolute;
+  width:300px;height:300px;border-radius:50%;
+  background:rgba(255,255,255,0.05);
+  bottom:-80px;right:-80px;
+}
+.cta-banner h2{font-size:clamp(2rem,4vw,3rem);font-weight:900;color:#fff;margin-bottom:1rem;position:relative;z-index:1}
+.cta-banner p{color:rgba(255,255,255,0.7);margin-bottom:2rem;font-size:1.05rem;position:relative;z-index:1}
+
+/* Footer */
+footer{background:#0a0a0a;color:#fff;padding:3rem 2.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem}
+footer .footer-logo{font-weight:900;font-size:1.5rem}
+footer .footer-links{display:flex;gap:1.5rem}
+footer .footer-links a{color:rgba(255,255,255,0.5);font-size:0.85rem;cursor:pointer;text-decoration:none;transition:color 0.2s}
+footer .footer-links a:hover{color:#c8ff00}
+
+/* ============================================================
+   PAGE 2 — READER
+============================================================ */
+#page-reader{background:#f9fafb;padding-top:80px}
+.reader-layout{
+  display:grid;grid-template-columns:320px 1fr;
+  min-height:calc(100vh - 80px);
+}
+
+/* Sidebar */
+.reader-sidebar{
+  background:#fff;border-right:1px solid #e5e7eb;
+  padding:1.5rem;overflow-y:auto;
+  position:sticky;top:80px;height:calc(100vh - 80px);
+}
+.sidebar-section{margin-bottom:2rem}
+.sidebar-section-title{
+  font-size:0.75rem;font-weight:700;letter-spacing:0.1em;
+  text-transform:uppercase;color:#6b7280;
+  margin-bottom:1rem;padding-bottom:0.5rem;
+  border-bottom:1px solid #f3f4f6;
+}
+
+/* Font selector */
+.font-options{display:flex;flex-direction:column;gap:0.5rem}
+.font-option{
+  display:flex;align-items:center;gap:0.8rem;
+  padding:0.7rem 1rem;border-radius:10px;border:2px solid #e5e7eb;
+  cursor:pointer;transition:all 0.2s;background:#fff;
+}
+.font-option:hover{border-color:#2626e6;background:#eff6ff}
+.font-option.active{border-color:#2626e6;background:#eff6ff}
+.font-option-preview{font-size:1.1rem;font-weight:600;min-width:60px}
+.font-option-name{font-size:0.8rem;color:#374151;font-weight:500}
+
+/* Sliders */
+.slider-group{display:flex;flex-direction:column;gap:1rem}
+.slider-item label{
+  display:flex;justify-content:space-between;
+  font-size:0.8rem;font-weight:600;color:#374151;margin-bottom:0.4rem;
+}
+.slider-item label span{color:#2626e6;font-weight:700}
+input[type=range]{
+  width:100%;-webkit-appearance:none;height:4px;
+  background:#e5e7eb;border-radius:2px;outline:none;cursor:pointer;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;width:16px;height:16px;border-radius:50%;
+  background:#2626e6;cursor:pointer;border:2px solid #fff;
+  box-shadow:0 2px 6px rgba(38,38,230,0.3);
+}
+input[type=range]::-moz-range-thumb{
+  width:16px;height:16px;border-radius:50%;
+  background:#2626e6;cursor:pointer;border:2px solid #fff;
+}
+
+/* Tint palette */
+.tint-palette{display:flex;gap:0.5rem;flex-wrap:wrap}
+.tint-swatch{
+  width:36px;height:36px;border-radius:8px;cursor:pointer;
+  border:2px solid transparent;transition:all 0.2s;
+  position:relative;
+}
+.tint-swatch:hover,.tint-swatch.active{border-color:#2626e6;transform:scale(1.1)}
+.tint-swatch::after{
+  content:attr(data-name);
+  position:absolute;bottom:-20px;left:50%;transform:translateX(-50%);
+  font-size:0.65rem;white-space:nowrap;color:#6b7280;opacity:0;
+  transition:opacity 0.2s;
+}
+.tint-swatch:hover::after{opacity:1}
+
+/* Highlighter controls */
+.highlight-controls{display:flex;flex-direction:column;gap:0.8rem}
+.control-row{display:flex;align-items:center;justify-content:space-between;gap:0.5rem}
+.control-label{font-size:0.8rem;color:#374151;font-weight:500}
+.toggle{
+  position:relative;width:40px;height:22px;
+  background:#e5e7eb;border-radius:11px;cursor:pointer;transition:background 0.2s;
+  border:none;outline:none;flex-shrink:0;
+}
+.toggle.on{background:#2626e6}
+.toggle::after{
+  content:'';position:absolute;width:18px;height:18px;border-radius:50%;
+  background:#fff;top:2px;left:2px;transition:transform 0.2s;
+  box-shadow:0 1px 4px rgba(0,0,0,0.2);
+}
+.toggle.on::after{transform:translateX(18px)}
+.speed-input{
+  width:70px;padding:0.3rem 0.5rem;border:1px solid #e5e7eb;
+  border-radius:6px;font-size:0.8rem;text-align:center;
+}
+.btn-sm{
+  padding:0.4rem 0.9rem;border-radius:8px;border:none;
+  font-size:0.8rem;font-weight:600;cursor:pointer;transition:all 0.2s;
+}
+.btn-blue{background:#2626e6;color:#fff}
+.btn-blue:hover{background:#1a1ab8}
+.btn-green{background:#10b981;color:#fff}
+.btn-green:hover{background:#059669}
+.btn-red{background:#ef4444;color:#fff}
+.btn-red:hover{background:#dc2626}
+.btn-gray{background:#f3f4f6;color:#374151;border:1px solid #e5e7eb}
+.btn-gray:hover{background:#e5e7eb}
+
+/* Presets */
+.preset-list{display:flex;flex-direction:column;gap:0.4rem;margin-bottom:0.8rem}
+.preset-item{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0.5rem 0.8rem;background:#f9fafb;border-radius:8px;
+  border:1px solid #e5e7eb;font-size:0.8rem;
+}
+.preset-item-name{font-weight:600;color:#374151;cursor:pointer;flex:1}
+.preset-item-name:hover{color:#2626e6}
+.preset-del{background:none;border:none;color:#ef4444;cursor:pointer;font-size:1rem;padding:0 4px}
+.preset-save-row{display:flex;gap:0.5rem}
+.preset-input{
+  flex:1;padding:0.4rem 0.7rem;border:1px solid #e5e7eb;
+  border-radius:8px;font-size:0.8rem;outline:none;
+}
+.preset-input:focus{border-color:#2626e6}
+
+/* Main reader area */
+.reader-main{padding:2rem;display:flex;flex-direction:column;gap:1.5rem}
+.reader-toolbar{
+  background:#fff;border-radius:12px;padding:1rem 1.5rem;
+  display:flex;align-items:center;gap:1rem;flex-wrap:wrap;
+  border:1px solid #e5e7eb;
+}
+.toolbar-title{font-weight:700;font-size:0.9rem;color:#0a0a0a;flex:1}
+.toolbar-actions{display:flex;gap:0.5rem;flex-wrap:wrap}
+
+/* Upload zone */
+.upload-zone{
+  background:#fff;border-radius:16px;border:2px dashed #c7d2fe;
+  padding:3rem;text-align:center;cursor:pointer;
+  transition:all 0.3s;
+}
+.upload-zone:hover,.upload-zone.drag-over{border-color:#2626e6;background:#eff6ff}
+.upload-icon{font-size:3rem;margin-bottom:1rem}
+.upload-zone h3{font-size:1.1rem;font-weight:700;color:#0a0a0a;margin-bottom:0.5rem}
+.upload-zone p{font-size:0.875rem;color:#6b7280;margin-bottom:1.5rem}
+.upload-types{display:flex;gap:0.5rem;flex-wrap:wrap;justify-content:center}
+.type-badge{
+  padding:0.25rem 0.7rem;border-radius:100px;
+  background:#f3f4f6;font-size:0.75rem;font-weight:600;color:#374151;
+}
+
+/* Reading pane */
+.reading-pane{
+  background:var(--bg-tint);border-radius:16px;
+  padding:2.5rem;position:relative;
+  border:1px solid #e5e7eb;min-height:400px;
+  transition:background 0.3s;
+}
+.reading-ruler{
+  position:sticky;top:80px;height:3px;
+  background:linear-gradient(90deg,#2626e6,#c8ff00);
+  border-radius:2px;margin-bottom:1.5rem;
+  transform-origin:left;transition:transform 0.1s;
+  z-index:10;
+}
+.reading-content{
+  font-family:var(--reading-font);
+  letter-spacing:var(--ls);
+  word-spacing:var(--ws);
+  line-height:var(--lh);
+  font-size:1.1rem;color:#1f2937;
+  white-space:pre-wrap;word-break:break-word;
+}
+.reading-content .word{
+  display:inline;padding:1px 2px;border-radius:3px;
+  cursor:pointer;transition:background 0.15s;
+}
+.reading-content .word:hover{background:rgba(38,38,230,0.08)}
+.reading-content .word.highlighted{
+  background:var(--highlight-color);
+  border-radius:3px;
+}
+.reading-content .word.current-highlight{
+  background:#fbbf24;color:#0a0a0a;
+  border-radius:3px;box-shadow:0 0 0 2px rgba(251,191,36,0.5);
+}
+
+/* Editable area */
+.editor-area{
+  width:100%;min-height:200px;padding:1.5rem;
+  border:1px solid #e5e7eb;border-radius:12px;
+  font-family:'Inter',sans-serif;font-size:0.9rem;
+  line-height:1.6;outline:none;resize:vertical;
+  transition:border-color 0.2s;background:#fff;
+}
+.editor-area:focus{border-color:#2626e6;box-shadow:0 0 0 3px rgba(38,38,230,0.1)}
+
+/* ============================================================
+   PAGE 3 — LIBRARY
+============================================================ */
+#page-library{padding-top:80px;background:#f9fafb;min-height:100vh;padding-bottom:3rem}
+.library-header{
+  background:#fff;border-bottom:1px solid #e5e7eb;
+  padding:2rem 2.5rem;
+}
+.library-header h2{font-size:1.8rem;font-weight:900;color:#0a0a0a;margin-bottom:0.5rem}
+.library-header p{color:#6b7280;font-size:0.9rem}
+.library-controls{
+  display:flex;align-items:center;gap:1rem;padding:1.5rem 2.5rem;
+  background:#fff;border-bottom:1px solid #e5e7eb;flex-wrap:wrap;
+}
+.search-box{
+  flex:1;min-width:200px;display:flex;align-items:center;gap:0.5rem;
+  background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;padding:0.6rem 1rem;
+}
+.search-box input{border:none;background:none;outline:none;flex:1;font-size:0.875rem}
+.filter-select{
+  padding:0.6rem 1rem;border:1px solid #e5e7eb;border-radius:10px;
+  font-size:0.875rem;outline:none;background:#fff;cursor:pointer;
+}
+.filter-select:focus{border-color:#2626e6}
+.library-grid{
+  display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
+  gap:1.5rem;padding:2rem 2.5rem;
+}
+.doc-item{
+  background:#fff;border-radius:16px;border:1px solid #e5e7eb;
+  overflow:hidden;cursor:pointer;transition:all 0.3s;
+  position:relative;
+}
+.doc-item:hover{transform:translateY(-4px);box-shadow:0 20px 40px rgba(0,0,0,0.08);border-color:#c7d2fe}
+.doc-item-header{
+  padding:2rem;display:flex;align-items:center;justify-content:center;
+  font-size:3rem;
+}
+.doc-item-body{padding:0 1.2rem 1.5rem}
+.doc-item-name{font-weight:700;font-size:0.9rem;color:#0a0a0a;margin-bottom:0.25rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.doc-item-meta{font-size:0.75rem;color:#9ca3af;margin-bottom:1rem}
+.doc-item-actions{display:flex;gap:0.4rem}
+.doc-type-badge{
+  position:absolute;top:1rem;right:1rem;
+  padding:0.2rem 0.6rem;border-radius:6px;
+  font-size:0.7rem;font-weight:800;letter-spacing:0.05em;
+}
+.type-pdf{background:#fee2e2;color:#dc2626}
+.type-doc{background:#dbeafe;color:#2563eb}
+.type-txt{background:#f3f4f6;color:#374151}
+.type-img{background:#fce7f3;color:#9d174d}
+.merge-panel{
+  margin:0 2.5rem 2rem;background:#fff;border-radius:16px;
+  border:1px solid #e5e7eb;padding:1.5rem;display:none;
+}
+.merge-panel.visible{display:block}
+.merge-selected{display:flex;gap:0.5rem;flex-wrap:wrap;margin:1rem 0}
+.merge-tag{
+  display:flex;align-items:center;gap:0.4rem;
+  background:#eff6ff;border:1px solid #c7d2fe;
+  padding:0.3rem 0.7rem;border-radius:100px;
+  font-size:0.8rem;font-weight:600;color:#2626e6;
+}
+.merge-tag button{background:none;border:none;cursor:pointer;color:#2626e6;font-size:1rem;line-height:1}
+
+/* ============================================================
+   PAGE 4 — TOOLS / DOCUMENT EDITOR
+============================================================ */
+#page-tools{padding-top:80px;background:#f9fafb;min-height:100vh;padding-bottom:3rem}
+.tools-layout{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;padding:2rem 2.5rem}
+.tool-panel{background:#fff;border-radius:16px;border:1px solid #e5e7eb;overflow:hidden}
+.tool-panel-header{
+  padding:1.2rem 1.5rem;border-bottom:1px solid #f3f4f6;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.tool-panel-title{font-weight:700;font-size:0.95rem;color:#0a0a0a}
+.tool-panel-body{padding:1.5rem}
+.summary-output{
+  background:#f9fafb;border-radius:10px;padding:1.2rem;
+  font-size:0.875rem;line-height:1.7;color:#374151;min-height:120px;
+  border:1px solid #e5e7eb;
+}
+.export-options{display:grid;grid-template-columns:1fr 1fr;gap:0.8rem}
+.export-btn{
+  display:flex;flex-direction:column;align-items:center;gap:0.5rem;
+  padding:1.2rem;border-radius:10px;border:1px solid #e5e7eb;
+  background:#fff;cursor:pointer;transition:all 0.2s;font-size:0.8rem;font-weight:600;color:#374151;
+}
+.export-btn:hover{border-color:#2626e6;background:#eff6ff;color:#2626e6}
+.export-btn .export-icon{font-size:1.8rem}
+textarea.full-editor{
+  width:100%;height:300px;padding:1rem;
+  border:1px solid #e5e7eb;border-radius:10px;
+  font-family:'Inter',sans-serif;font-size:0.875rem;line-height:1.6;
+  resize:vertical;outline:none;
+}
+textarea.full-editor:focus{border-color:#2626e6;box-shadow:0 0 0 3px rgba(38,38,230,0.08)}
+.word-count{font-size:0.75rem;color:#9ca3af;margin-top:0.5rem}
+.diff-highlight{background:#bbf7d0;border-radius:3px;padding:0 2px}
+.diff-remove{background:#fecaca;border-radius:3px;padding:0 2px;text-decoration:line-through}
+
+/* ============================================================
+   PAGE 5 — ABOUT
+============================================================ */
+#page-about{padding-top:80px;background:#fff;min-height:100vh;padding-bottom:5rem}
+.about-hero{
+  background:linear-gradient(135deg,#0a0a0a 0%,#2626e6 100%);
+  padding:5rem 2.5rem;text-align:center;color:#fff;
+}
+.about-hero h2{font-size:clamp(2rem,5vw,4rem);font-weight:900;margin-bottom:1rem}
+.about-hero p{font-size:1.1rem;color:rgba(255,255,255,0.7);max-width:600px;margin:0 auto}
+.about-content{max-width:900px;margin:0 auto;padding:4rem 2.5rem}
+.about-grid{display:grid;grid-template-columns:1fr 1fr;gap:3rem;margin-bottom:4rem}
+.about-block h3{font-size:1.3rem;font-weight:800;color:#0a0a0a;margin-bottom:1rem}
+.about-block p{color:#6b7280;line-height:1.8;font-size:0.95rem}
+.team-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1.5rem;margin-top:2rem}
+.team-card{text-align:center;padding:1.5rem;background:#f9fafb;border-radius:16px}
+.team-avatar{
+  width:64px;height:64px;border-radius:50%;margin:0 auto 1rem;
+  display:flex;align-items:center;justify-content:center;font-size:1.8rem;
+  background:linear-gradient(135deg,#2626e6,#c8ff00);
+}
+.team-name{font-weight:700;font-size:0.9rem;color:#0a0a0a}
+.team-role{font-size:0.75rem;color:#6b7280;margin-top:0.2rem}
+.faq-list{display:flex;flex-direction:column;gap:1rem;margin-top:2rem}
+.faq-item{border:1px solid #e5e7eb;border-radius:12px;overflow:hidden}
+.faq-q{
+  padding:1.2rem 1.5rem;font-weight:600;font-size:0.9rem;
+  cursor:pointer;display:flex;justify-content:space-between;
+  align-items:center;transition:background 0.2s;
+}
+.faq-q:hover{background:#f9fafb}
+.faq-a{
+  padding:0 1.5rem;max-height:0;overflow:hidden;
+  font-size:0.875rem;color:#6b7280;line-height:1.7;
+  transition:max-height 0.3s ease,padding 0.3s;
+}
+.faq-a.open{max-height:200px;padding:1rem 1.5rem}
+
+/* ============================================================
+   MODALS & TOASTS
+============================================================ */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,0.5);
+  z-index:2000;display:flex;align-items:center;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity 0.3s;
+}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal{
+  background:#fff;border-radius:20px;padding:2rem;
+  max-width:480px;width:90%;max-height:80vh;overflow-y:auto;
+  transform:scale(0.9);transition:transform 0.3s;
+}
+.modal-overlay.open .modal{transform:scale(1)}
+.modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem}
+.modal-title{font-size:1.2rem;font-weight:800;color:#0a0a0a}
+.modal-close{background:none;border:none;font-size:1.5rem;cursor:pointer;color:#6b7280;width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:8px}
+.modal-close:hover{background:#f3f4f6}
+.toast-container{position:fixed;bottom:1.5rem;right:1.5rem;z-index:3000;display:flex;flex-direction:column;gap:0.5rem}
+.toast{
+  background:#0a0a0a;color:#fff;padding:0.8rem 1.2rem;border-radius:10px;
+  font-size:0.85rem;font-weight:500;display:flex;align-items:center;gap:0.7rem;
+  box-shadow:0 10px 30px rgba(0,0,0,0.2);
+  animation:toastIn 0.3s ease,toastOut 0.3s ease 2.7s forwards;
+  max-width:320px;
+}
+.toast.success{border-left:3px solid #10b981}
+.toast.error{border-left:3px solid #ef4444}
+.toast.info{border-left:3px solid #2626e6}
+@keyframes toastIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes toastOut{from{opacity:1;transform:translateY(0)}to{opacity:0;transform:translateY(20px)}}
+
+/* ============================================================
+   LOADING / PROGRESS
+============================================================ */
+.progress-bar-wrap{height:4px;background:#f3f4f6;border-radius:2px;overflow:hidden;margin:0.5rem 0}
+.progress-bar{height:100%;background:linear-gradient(90deg,#2626e6,#c8ff00);border-radius:2px;transition:width 0.3s}
+.spinner{
+  width:24px;height:24px;border:2px solid #e5e7eb;border-top-color:#2626e6;
+  border-radius:50%;animation:spin2 0.8s linear infinite;display:inline-block;
+}
+@keyframes spin2{to{transform:rotate(360deg)}}
+
+/* ============================================================
+   UTILITY
+============================================================ */
+.flex{display:flex}.flex-center{display:flex;align-items:center;justify-content:center}
+.gap-sm{gap:0.5rem}.gap-md{gap:1rem}
+.mt-sm{margin-top:0.5rem}.mt-md{margin-top:1rem}.mt-lg{margin-top:2rem}
+.mb-sm{margin-bottom:0.5rem}.mb-md{margin-bottom:1rem}
+.hidden{display:none!important}
+.w-full{width:100%}
+.text-center{text-align:center}
+.divider{height:1px;background:#f3f4f6;margin:1rem 0}
+.badge{display:inline-block;padding:0.2rem 0.6rem;border-radius:100px;font-size:0.7rem;font-weight:700}
+.badge-blue{background:#eff6ff;color:#2626e6}
+.badge-green{background:#f0fdf4;color:#16a34a}
+
+/* ============================================================
+   RESPONSIVE
+============================================================ */
+@media(max-width:1024px){
+  .reader-layout{grid-template-columns:280px 1fr}
+  .tools-layout{grid-template-columns:1fr}
+}
+@media(max-width:768px){
+  .hero-cover{grid-template-columns:1fr;text-align:center}
+  .hero-right{display:none}
+  .hero-cta-row{justify-content:center}
+  .reader-layout{grid-template-columns:1fr}
+  .reader-sidebar{position:relative;top:0;height:auto}
+  .about-grid{grid-template-columns:1fr}
+  .tools-layout{grid-template-columns:1fr}
+  .library-grid{grid-template-columns:repeat(auto-fill,minmax(200px,1fr))}
+  .nav-links{display:none}.nav-links.open{display:flex;flex-direction:column;position:absolute;top:100%;left:0;right:0;background:#fff;border-bottom:1px solid #e5e7eb;padding:1rem;gap:0.5rem}
+  .nav-hamburger{display:flex}
+  h1.hero-title{font-size:3.5rem}
+}
+
+/* ============================================================
+   ANIMATIONS
+============================================================ */
+.fade-in{animation:fadeIn 0.5s ease forwards}
+.slide-up{animation:slideUp 0.5s ease forwards}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.animate-on-scroll{opacity:0;transform:translateY(30px);transition:all 0.6s ease}
+.animate-on-scroll.visible{opacity:1;transform:translateY(0)}
+
+/* Tabs */
+.tabs{display:flex;gap:0;border-bottom:1px solid #e5e7eb;margin-bottom:1.5rem}
+.tab-btn{
+  padding:0.7rem 1.2rem;border:none;background:none;
+  font-size:0.85rem;font-weight:600;color:#6b7280;cursor:pointer;
+  border-bottom:2px solid transparent;margin-bottom:-1px;transition:all 0.2s;
+}
+.tab-btn.active{color:#2626e6;border-bottom-color:#2626e6}
+.tab-content{display:none}.tab-content.active{display:block}
+
+/* Custom scrollbar for sidebar */
+.reader-sidebar::-webkit-scrollbar{width:4px}
+.reader-sidebar::-webkit-scrollbar-thumb{background:#c7d2fe;border-radius:2px}
+
+/* Input file hidden */
+#fileInput{display:none}
+#imgInput{display:none}
+
+/* Preview pane */
+.preview-modal-body{
+  background:#f9fafb;border-radius:10px;padding:1.5rem;
+  max-height:400px;overflow-y:auto;
+  font-size:0.9rem;line-height:1.7;color:#374151;white-space:pre-wrap;word-break:break-word;
+}
+
+/* Color swatch active ring */
+.tint-swatch.active{box-shadow:0 0 0 3px #2626e6,0 0 0 5px rgba(38,38,230,0.2)}
+
+/* Tooltip */
+[data-tip]{position:relative}
+[data-tip]::before{
+  content:attr(data-tip);
+  position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);
+  background:#0a0a0a;color:#fff;font-size:0.7rem;padding:0.3rem 0.6rem;
+  border-radius:6px;white-space:nowrap;opacity:0;pointer-events:none;transition:opacity 0.2s;
+  z-index:100;
+}
+[data-tip]:hover::before{opacity:1}
+
+/* Doc header bg colors */
+.bg-blue{background:#eff6ff}.bg-lime{background:#f7ffe0}
+.bg-purple{background:#f5f3ff}.bg-orange{background:#fff7ed}
+.bg-pink{background:#fdf2f8}.bg-green{background:#f0fdf4}
+
+/* Fullscreen reading mode */
+.fullscreen-mode .reader-sidebar{display:none}
+.fullscreen-mode .reader-layout{grid-template-columns:1fr}
+
+/* Range track fill color */
+.slider-item{position:relative}
+
+/* Pulse animation for active word */
+@keyframes pulse-highlight{0%,100%{box-shadow:0 0 0 0 rgba(251,191,36,0.5)}50%{box-shadow:0 0 0 6px rgba(251,191,36,0)}}
+.word.current-highlight{animation:pulse-highlight 1s ease infinite}
+</style>
+</head>
+<body>
+
+<!-- ============================================================
+     NAVIGATION
+============================================================ -->
+<nav class="nav" id="mainNav">
+  <div class="nav-logo" onclick="showPage('home')">
+    <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect width="40" height="40" rx="10" fill="#2626e6"/>
+      <path d="M10 14h8M10 20h14M10 26h10" stroke="#c8ff00" stroke-width="2.5" stroke-linecap="round"/>
+      <circle cx="28" cy="26" r="6" fill="#c8ff00"/>
+      <path d="M25.5 26l2 2 3-3" stroke="#0a0a0a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    <span style="font-weight:900;font-size:1.2rem">MINIDOX</span>
+  </div>
+  <ul class="nav-links" id="navLinks">
+    <li><a onclick="showPage('home')" id="nav-home" class="active">Home</a></li>
+    <li><a onclick="showPage('reader')" id="nav-reader">Reader</a></li>
+    <li><a onclick="showPage('library')" id="nav-library">Library</a></li>
+    <li><a onclick="showPage('tools')" id="nav-tools">Tools</a></li>
+    <li><a onclick="showPage('about')" id="nav-about">About</a></li>
+  </ul>
+  <button class="nav-cta" onclick="showPage('reader')">Start Analysis →</button>
+  <button class="nav-hamburger" id="hamburger" onclick="toggleMobileMenu()">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- Preview Modal -->
+<div class="modal-overlay" id="previewModal">
+  <div class="modal" style="max-width:600px">
+    <div class="modal-header">
+      <div class="modal-title" id="previewTitle">Document Preview</div>
+      <button class="modal-close" onclick="closeModal('previewModal')">×</button>
+    </div>
+    <div class="preview-modal-body" id="previewBody"></div>
+    <div style="display:flex;gap:0.7rem;margin-top:1.5rem;justify-content:flex-end">
+      <button class="btn-sm btn-gray" onclick="closeModal('previewModal')">Close</button>
+      <button class="btn-sm btn-blue" onclick="openInReader()">Open in Reader</button>
+    </div>
+  </div>
+</div>
+
+<!-- Save Preset Modal -->
+<div class="modal-overlay" id="presetModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Save Preset</div>
+      <button class="modal-close" onclick="closeModal('presetModal')">×</button>
+    </div>
+    <p style="font-size:0.875rem;color:#6b7280;margin-bottom:1rem">Save your current reading configuration as a named preset for quick access later.</p>
+    <input type="text" id="presetNameInput" class="editor-area" style="min-height:auto;height:44px;resize:none" placeholder="e.g. Study Mode, Relaxed Reading...">
+    <div style="display:flex;gap:0.7rem;margin-top:1rem;justify-content:flex-end">
+      <button class="btn-sm btn-gray" onclick="closeModal('presetModal')">Cancel</button>
+      <button class="btn-sm btn-blue" onclick="confirmSavePreset()">Save Preset</button>
+    </div>
+  </div>
+</div>
+
+<!-- Export Modal -->
+<div class="modal-overlay" id="exportModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Export Document</div>
+      <button class="modal-close" onclick="closeModal('exportModal')">×</button>
+    </div>
+    <p style="font-size:0.875rem;color:#6b7280;margin-bottom:1.5rem">Choose your export format</p>
+    <div class="export-options">
+      <button class="export-btn" onclick="exportDoc('txt')"><span class="export-icon">📄</span>Plain Text (.txt)</button>
+      <button class="export-btn" onclick="exportDoc('html')"><span class="export-icon">🌐</span>HTML File</button>
+      <button class="export-btn" onclick="exportDoc('md')"><span class="export-icon">📝</span>Markdown (.md)</button>
+      <button class="export-btn" onclick="exportDoc('copy')"><span class="export-icon">📋</span>Copy to Clipboard</button>
+    </div>
+  </div>
+</div>
+
+<!-- Merge Modal -->
+<div class="modal-overlay" id="mergeModal">
+  <div class="modal" style="max-width:600px">
+    <div class="modal-header">
+      <div class="modal-title">Merge Documents</div>
+      <button class="modal-close" onclick="closeModal('mergeModal')">×</button>
+    </div>
+    <p style="font-size:0.875rem;color:#6b7280;margin-bottom:1rem">Documents selected for merge:</p>
+    <div id="mergeDocList" style="display:flex;flex-direction:column;gap:0.5rem;margin-bottom:1.5rem"></div>
+    <label style="font-size:0.8rem;font-weight:600;color:#374151;display:block;margin-bottom:0.4rem">Separator between documents</label>
+    <select id="mergeSeparator" class="filter-select" style="width:100%;margin-bottom:1.5rem">
+      <option value="\n\n---\n\n">Horizontal Rule (---)</option>
+      <option value="\n\n">Double Newline</option>
+      <option value="\n\n===\n\n">Triple Equals (===)</option>
+      <option value=" ">Single Space</option>
+    </select>
+    <div style="display:flex;gap:0.7rem;justify-content:flex-end">
+      <button class="btn-sm btn-gray" onclick="closeModal('mergeModal')">Cancel</button>
+      <button class="btn-sm btn-blue" onclick="performMerge()">Merge & Open in Reader</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     PAGE: HOME
+============================================================ -->
+<div id="page-home" class="page active">
+  <!-- Hero Cover -->
+  <section class="hero-cover" style="padding-top:100px">
+    <!-- Blobs -->
+    <div class="hero-blob"></div>
+    <div class="hero-blob-2"></div>
+    <!-- Sparkles -->
+    <div class="sparkle">✦</div>
+    <div class="sparkle">◆</div>
+
+    <!-- Left -->
+    <div class="hero-left slide-up">
+      <div class="hero-logo-line">
+        <svg viewBox="0 0 28 28" fill="none">
+          <rect x="2" y="4" width="18" height="20" rx="3" stroke="#6b7280" stroke-width="1.5"/>
+          <path d="M6 10h10M6 14h7" stroke="#6b7280" stroke-width="1.5" stroke-linecap="round"/>
+          <circle cx="21" cy="21" r="5" fill="#6b7280"/>
+          <path d="M19 21l1.5 1.5 2.5-2.5" stroke="#fff" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        PDF & DOC ANALYTICS
+      </div>
+      <h1 class="hero-title">MINIDOX</h1>
+      <div class="hero-subtitle-big">Powerful Insights. Precision Edits.</div>
+      <div class="hero-cta-row">
+        <button class="btn-lime" onclick="showPage('reader')">
+          START YOUR ANALYSIS →
+        </button>
+        <button class="btn-outline-dark" onclick="showPage('about')">
+          LEARN MORE
+        </button>
+      </div>
+    </div>
+
+    <!-- Right — floating docs -->
+    <div class="hero-right fade-in">
+      <div class="doc-stack">
+        <div class="doc-card">
+          <span class="doc-badge pdf">PDF</span>
+          <div class="doc-lines">
+            <div></div><div></div><div></div>
+          </div>
+          <div class="doc-check">✓</div>
+        </div>
+        <div class="doc-card" style="left:80px;top:0">
+          <span class="doc-badge pdf">PDF</span>
+          <div class="doc-lines">
+            <div></div><div></div>
+          </div>
+          <div class="doc-check">✓</div>
+        </div>
+        <div class="doc-card" style="right:0;bottom:60px">
+          <span class="doc-badge doc">DOC</span>
+          <div class="doc-lines">
+            <div></div><div></div><div></div>
+          </div>
+          <div class="doc-check">✓</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Bottom blue bar -->
+  <div class="hero-bottom-bar">
+    <p>TRUSTED BY 10,000+ RESEARCHERS, STUDENTS & PROFESSIONALS</p>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row">
+    <div class="stat-item animate-on-scroll"><div class="stat-num">50+</div><div class="stat-label">File Formats Supported</div></div>
+    <div class="stat-item animate-on-scroll" style="transition-delay:0.1s"><div class="stat-num">0ms</div><div class="stat-label">Live Preview Latency</div></div>
+    <div class="stat-item animate-on-scroll" style="transition-delay:0.2s"><div class="stat-num">∞</div><div class="stat-label">Documents in Library</div></div>
+  </div>
+
+  <!-- Marquee -->
+  <div class="marquee-wrap">
+    <div class="marquee-track" id="marqueeTrack">
+      <div class="marquee-item"><span class="marquee-dot"></span>OpenDyslexic Font</div>
+      <div class="marquee-item"><span class="marquee-dot"></span>Word Highlighter</div>
+      <div class="marquee-item"><span class="marquee-dot"></span>PDF Upload</div>
+      <div class="marquee-item"><span class="marquee-dot"></span>AI Summarizer</div>
+      <div class="marquee-item"><span class="marquee-dot"></span>Document Merge</div>
+      <div class="marquee-item"><span class="marquee-dot"></span>Export to TXT/HTML/MD</div>
+      <div class="marquee-item"><span class="marquee-dot"></span>Named Presets</div>
+      <div class="marquee-item"><span class="marquee-dot"></span>Background Tints</div>
+      <div class="marquee-item"><span class="marquee-dot"></span>Live Spacing Controls</div>
+      <div class="marquee-item"><span class="marquee-dot"></span>Image OCR (Simulated)</div>
+      <!-- Duplicate for infinite scroll -->
+      <div class="marquee-item"><span class="marquee-dot"></span>OpenDyslexic Font</div>
+      <div class="marquee-item"><span class="marquee-dot"></span>Word Highlighter</div>
+      <div class="marquee-item"><span class="marquee-dot"></span>PDF Upload</div>
+      <div class="marquee-item"><span class="marquee-dot"></span>AI Summarizer</div>
+      <div class="marquee-item"><span class="marquee-dot"></span>Document Merge</div>
+      <div class="marquee-item"><span class="marquee-dot"></span>Export to TXT/HTML/MD</div>
+      <div class="marquee-item"><span class="marquee-dot"></span>Named Presets</div>
+      <div class="marquee-item"><span class="marquee-dot"></span>Background Tints</div>
+      <div class="marquee-item"><span class="marquee-dot"></span>Live Spacing Controls</div>
+      <div class="marquee-item"><span class="marquee-dot"></span>Image OCR (Simulated)</div>
+    </div>
+  </div>
+
+  <!-- Features -->
+  <section class="features-section">
+    <div class="section-header">
+      <div class="section-tag">Features</div>
+      <h2 class="section-title">Everything you need to read smarter</h2>
+    </div>
+    <div class="features-grid">
+      <div class="feat-card animate-on-scroll">
+        <div class="feat-icon blue">🔤</div>
+        <h3>Dyslexia-Friendly Fonts</h3>
+        <p>Switch between OpenDyslexic, Lexie Readable, and standard fonts with zero-latency live preview on every selection.</p>
+      </div>
+      <div class="feat-card animate-on-scroll" style="transition-delay:0.1s">
+        <div class="feat-icon lime">📏</div>
+        <h3>Live Spacing Controls</h3>
+        <p>Independent CSS sliders for letter-spacing, word-spacing, line-height, and paragraph-spacing with synchronous live reflow.</p>
+      </div>
+      <div class="feat-card animate-on-scroll" style="transition-delay:0.2s">
+        <div class="feat-icon purple">⚡</div>
+        <h3>Word Highlighter</h3>
+        <p>Auto-advance word highlighting with configurable timer. Manual click-advance or 0.5–5 second auto-progression.</p>
+      </div>
+      <div class="feat-card animate-on-scroll" style="transition-delay:0.3s">
+        <div class="feat-icon orange">🎨</div>
+        <h3>Background Tints</h3>
+        <p>Cream, pale blue, soft yellow, and mint tints reduce visual stress. Floating scroll ruler tracks reading position.</p>
+      </div>
+      <div class="feat-card animate-on-scroll" style="transition-delay:0.4s">
+        <div class="feat-icon green">📁</div>
+        <h3>Multi-Format Upload</h3>
+        <p>Paste text or upload TXT, PDF, DOCX, images, and more. Drag-and-drop with instant content rehydration.</p>
+      </div>
+      <div class="feat-card animate-on-scroll" style="transition-delay:0.5s">
+        <div class="feat-icon pink">💾</div>
+        <h3>Named Presets</h3>
+        <p>Serialize your configuration as named presets persisted in localStorage. One-click restoration on every visit.</p>
+      </div>
+      <div class="feat-card animate-on-scroll" style="transition-delay:0.0s">
+        <div class="feat-icon blue">🤖</div>
+        <h3>AI Summarizer</h3>
+        <p>Instantly summarize any document — extractive key sentences distilled to essential insights. Configurable length.</p>
+      </div>
+      <div class="feat-card animate-on-scroll" style="transition-delay:0.1s">
+        <div class="feat-icon lime">🔗</div>
+        <h3>Document Merge</h3>
+        <p>Select multiple documents from your library and merge them into a single unified document for analysis or export.</p>
+      </div>
+      <div class="feat-card animate-on-scroll" style="transition-delay:0.2s">
+        <div class="feat-icon purple">📤</div>
+        <h3>Easy Export</h3>
+        <p>Export your edited content as TXT, HTML, Markdown, or copy to clipboard — instantly, no accounts required.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- How it works -->
+  <section class="how-section">
+    <div class="section-header">
+      <div class="section-tag">Workflow</div>
+      <h2 class="section-title">Three steps to clarity</h2>
+    </div>
+    <div class="steps-grid">
+      <div class="step-card animate-on-scroll">
+        <div class="step-num">1</div>
+        <h3>Upload or Paste</h3>
+        <p>Drop a file or paste text. Supports TXT, PDF, DOCX, images and more. Content rehydrates instantly in the reading pane.</p>
+      </div>
+      <div class="step-card animate-on-scroll" style="transition-delay:0.15s">
+        <div class="step-num">2</div>
+        <h3>Customize & Read</h3>
+        <p>Adjust fonts, spacing, tints, and highlighting. Edit directly in the pane. Save your config as a named preset.</p>
+      </div>
+      <div class="step-card animate-on-scroll" style="transition-delay:0.3s">
+        <div class="step-num">3</div>
+        <h3>Summarize & Export</h3>
+        <p>Generate summaries, merge multiple docs, then export in your preferred format — TXT, HTML, Markdown, or clipboard.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta-banner">
+    <h2>Start reading with clarity today.</h2>
+    <p>No signup required. Your documents stay private — processed entirely in your browser.</p>
+    <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;position:relative;z-index:1">
+      <button class="btn-lime" onclick="showPage('reader')">OPEN READER →</button>
+      <button class="btn-outline-dark" style="border-color:#fff;color:#fff" onclick="showPage('library')">VIEW LIBRARY</button>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div class="footer-logo">MINIDOX</div>
+    <div class="footer-links">
+      <a onclick="showPage('home')">Home</a>
+      <a onclick="showPage('reader')">Reader</a>
+      <a onclick="showPage('library')">Library</a>
+      <a onclick="showPage('about')">About</a>
+    </div>
+    <div style="font-size:0.8rem;color:rgba(255,255,255,0.3)">© 2025 MINIDOX. All rights reserved.</div>
+  </footer>
+</div>
+
+<!-- ============================================================
+     PAGE: READER
+============================================================ -->
+<div id="page-reader" class="page">
+  <div class="reader-layout" id="readerLayout">
+    <!-- SIDEBAR -->
+    <aside class="reader-sidebar">
+
+      <!-- Font Selector -->
+      <div class="sidebar-section">
+        <div class="sidebar-section-title">Font Family</div>
+        <div class="font-options">
+          <div class="font-option active" onclick="setFont('OpenDyslexic','openDyslexic')" id="font-openDyslexic">
+            <span class="font-option-preview" style="font-family:serif">Aa</span>
+            <div>
+              <div class="font-option-name">OpenDyslexic</div>
+              <div style="font-size:0.7rem;color:#9ca3af">Reduces character reversals</div>
+            </div>
+          </div>
+          <div class="font-option" onclick="setFont('Lexend','lexend')" id="font-lexend">
+            <span class="font-option-preview" style="font-family:'Lexend',sans-serif">Aa</span>
+            <div>
+              <div class="font-option-name">Lexend</div>
+              <div style="font-size:0.7rem;color:#9ca3af">Lexie Readable style</div>
+            </div>
+          </div>
+          <div class="font-option" onclick="setFont('Georgia','georgia')" id="font-georgia">
+            <span class="font-option-preview" style="font-family:Georgia">Aa</span>
+            <div>
+              <div class="font-option-name">Georgia</div>
+              <div style="font-size:0.7rem;color:#9ca3af">Classic serif</div>
+            </div>
+          </div>
+          <div class="font-option" onclick="setFont('Inter','inter')" id="font-inter">
+            <span class="font-option-preview" style="font-family:'Inter',sans-serif">Aa</span>
+            <div>
+              <div class="font-option-name">Inter</div>
+              <div style="font-size:0.7rem;color:#9ca3af">Clean sans-serif</div>
+            </div>
+          </div>
+          <div class="font-option" onclick="setFont(''Courier New'','courier')" id="font-courier">
+            <span class="font-option-preview" style="font-family:'Courier New'">Aa</span>
+            <div>
+              <div class="font-option-name">Courier New</div>
+              <div style="font-size:0.7rem;color:#9ca3af">Monospace</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Spacing Sliders -->
+      <div class="sidebar-section">
+        <div class="sidebar-section-title">Spacing Controls</div>
+        <div class="slider-group">
+          <div class="slider-item">
+            <label>Letter Spacing <span id="lsVal">0em</span></label>
+            <input type="range" id="letterSpacing" min="-0.05" max="0.3" step="0.01" value="0" oninput="updateSpacing()">
+          </div>
+          <div class="slider-item">
+            <label>Word Spacing <span id="wsVal">0em</span></label>
+            <input type="range" id="wordSpacing" min="-0.1" max="0.5" step="0.01" value="0" oninput="updateSpacing()">
+          </div>
+          <div class="slider-item">
+            <label>Line Height <span id="lhVal">1.6</span></label>
+            <input type="range" id="lineHeight" min="1" max="3" step="0.1" value="1.6" oninput="updateSpacing()">
+          </div>
+          <div class="slider-item">
+            <label>Font Size <span id="fsVal">1.1rem</span></label>
+            <input type="range" id="fontSize" min="0.8" max="2" step="0.05" value="1.1" oninput="updateSpacing()">
+          </div>
+        </div>
+      </div>
+
+      <!-- Background Tints -->
+      <div class="sidebar-section">
+        <div class="sidebar-section-title">Background Tint</div>
+        <div class="tint-palette">
+          <div class="tint-swatch active" style="background:#ffffff" data-tint="#ffffff" data-name="White" onclick="setTint(this)" title="White"></div>
+          <div class="tint-swatch" style="background:#fdf8f0" data-tint="#fdf8f0" data-name="Cream" onclick="setTint(this)" title="Cream"></div>
+          <div class="tint-swatch" style="background:#e8f0fe" data-tint="#e8f0fe" data-name="Pale Blue" onclick="setTint(this)" title="Pale Blue"></div>
+          <div class="tint-swatch" style="background:#fefce8" data-tint="#fefce8" data-name="Soft Yellow" onclick="setTint(this)" title="Soft Yellow"></div>
+          <div class="tint-swatch" style="background:#f0fdf4" data-tint="#f0fdf4" data-name="Mint" onclick="setTint(this)" title="Mint"></div>
+          <div class="tint-swatch" style="background:#fdf2f8" data-tint="#fdf2f8" data-name="Rose" onclick="setTint(this)" title="Rose"></div>
+          <div class="tint-swatch" style="background:#0a0a0a;border:1px solid #374151" data-tint="#0a0a0a" data-name="Dark" onclick="setTint(this)" title="Dark"></div>
+        </div>
+        <div style="margin-top:0.8rem">
+          <label style="font-size:0.75rem;font-weight:600;color:#374151;display:block;margin-bottom:0.4rem">Text Color</label>
+          <input type="color" id="textColorPicker" value="#1f2937" onchange="updateTextColor()" style="width:100%;height:32px;border:1px solid #e5e7eb;border-radius:6px;cursor:pointer;padding:2px">
+        </div>
+        <div style="margin-top:0.8rem">
+          <label style="font-size:0.75rem;font-weight:600;color:#374151;display:block;margin-bottom:0.4rem">Highlight Color</label>
+          <input type="color" id="highlightColorPicker" value="#fbbf24" onchange="updateHighlightColor()" style="width:100%;height:32px;border:1px solid #e5e7eb;border-radius:6px;cursor:pointer;padding:2px">
+        </div>
+      </div>
+
+      <!-- Word Highlighter -->
+      <div class="sidebar-section">
+        <div class="sidebar-section-title">Word Highlighter</div>
+        <div class="highlight-controls">
+          <div class="control-row">
+            <span class="control-label">Auto-advance</span>
+            <button class="toggle" id="autoToggle" onclick="toggleAuto()"></button>
+          </div>
+          <div class="control-row">
+            <span class="control-label">Interval (sec)</span>
+            <input type="number" class="speed-input" id="speedInput" value="1.5" min="0.3" max="10" step="0.1">
+          </div>
+          <div class="control-row" style="flex-wrap:wrap;gap:0.4rem">
+            <button class="btn-sm btn-gray" onclick="prevWord()" data-tip="Previous word">← Prev</button>
+            <button class="btn-sm btn-blue" onclick="nextWord()" data-tip="Next word">Next →</button>
+            <button class="btn-sm btn-red" onclick="resetHighlight()" data-tip="Reset">Reset</button>
+          </div>
+          <div style="background:#f9fafb;border-radius:8px;padding:0.7rem;font-size:0.75rem;color:#6b7280">
+            Word <span id="wordPos" style="font-weight:700;color:#2626e6">0</span> of <span id="wordTotal">0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Presets -->
+      <div class="sidebar-section">
+        <div class="sidebar-section-title">Named Presets</div>
+        <div class="preset-list" id="presetList"></div>
+        <div class="preset-save-row">
+          <button class="btn-sm btn-blue" onclick="openModal('presetModal')">+ Save Current</button>
+          <button class="btn-sm btn-gray" onclick="resetSettings()">Reset All</button>
+        </div>
+      </div>
+
+      <!-- View Options -->
+      <div class="sidebar-section">
+        <div class="sidebar-section-title">View Options</div>
+        <div class="highlight-controls">
+          <div class="control-row">
+            <span class="control-label">Focus Mode</span>
+            <button class="toggle" id="focusToggle" onclick="toggleFocusMode()"></button>
+          </div>
+          <div class="control-row">
+            <span class="control-label">Ruler</span>
+            <button class="toggle on" id="rulerToggle" onclick="toggleRuler()"></button>
+          </div>
+        </div>
+      </div>
+
+    </aside>
+
+    <!-- MAIN READER -->
+    <main class="reader-main">
+      <!-- Toolbar -->
+      <div class="reader-toolbar">
+        <span class="toolbar-title">📖 Document Reader</span>
+        <div class="toolbar-actions">
+          <button class="btn-sm btn-gray" onclick="document.getElementById('fileInput').click()" data-tip="Upload file">📁 Upload</button>
+          <input type="file" id="fileInput" accept=".txt,.pdf,.doc,.docx,.md,.csv,.json,.xml,.html,.img,.png,.jpg,.jpeg,.gif,.webp,.bmp" onchange="handleFileUpload(event)">
+          <button class="btn-sm btn-gray" onclick="toggleEditMode()" id="editModeBtn" data-tip="Toggle edit mode">✏️ Edit</button>
+          <button class="btn-sm btn-blue" onclick="summarizeText()" data-tip="Summarize">🤖 Summarize</button>
+          <button class="btn-sm btn-green" onclick="openModal('exportModal')" data-tip="Export">📤 Export</button>
+          <button class="btn-sm btn-gray" onclick="toggleFullscreen()" data-tip="Focus mode">⛶ Focus</button>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div style="background:#fff;border-radius:12px;border:1px solid #e5e7eb;overflow:hidden">
+        <div style="padding:1rem 1.5rem;border-bottom:1px solid #f3f4f6">
+          <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('input','reader')">Input</button>
+            <button class="tab-btn" onclick="switchTab('reading','reader')">Reading</button>
+            <button class="tab-btn" onclick="switchTab('summary','reader')">Summary</button>
+          </div>
+        </div>
+
+        <!-- Tab: Input -->
+        <div class="tab-content active" id="tab-input" style="padding:1.5rem">
+          <textarea class="editor-area" id="inputArea" placeholder="Paste your text here, or upload a file above...&#10;&#10;Try pasting a dense academic paragraph — then switch to the Reading tab to experience the full dyslexia-friendly reader with live adjustments." style="min-height:300px"></textarea>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:0.8rem;flex-wrap:wrap;gap:0.5rem">
+            <div style="font-size:0.75rem;color:#9ca3af" id="inputWordCount">0 words · 0 characters</div>
+            <div style="display:flex;gap:0.5rem">
+              <button class="btn-sm btn-gray" onclick="clearInput()">Clear</button>
+              <button class="btn-sm btn-blue" onclick="loadToReader()">Load to Reader →</button>
+            </div>
+          </div>
+          <!-- Drag overlay info -->
+          <div style="margin-top:1rem;padding:0.8rem;background:#f9fafb;border-radius:8px;font-size:0.8rem;color:#6b7280;text-align:center">
+            💡 Drag & drop files directly onto this page, or use the Upload button above.<br>
+            Supported: <strong>TXT, PDF, DOC, DOCX, MD, CSV, JSON, XML, HTML, PNG, JPG, GIF, WEBP</strong>
+          </div>
+        </div>
+
+        <!-- Tab: Reading -->
+        <div class="tab-content" id="tab-reading" style="padding:1.5rem">
+          <div class="reading-ruler" id="readingRuler"></div>
+          <div class="reading-pane" id="readingPane">
+            <div class="reading-content" id="readingContent">
+              <em style="color:#9ca3af">Load text from the Input tab to begin reading...</em>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab: Summary -->
+        <div class="tab-content" id="tab-summary" style="padding:1.5rem">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;flex-wrap:wrap;gap:0.5rem">
+            <div>
+              <div style="font-weight:700;font-size:0.95rem;color:#0a0a0a;margin-bottom:0.2rem">Document Summary</div>
+              <div style="font-size:0.8rem;color:#6b7280">Extractive key-sentence summary</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:0.5rem">
+              <label style="font-size:0.8rem;color:#374151;font-weight:500">Sentences:</label>
+              <input type="number" id="summaryCount" value="4" min="1" max="15" style="width:60px;padding:0.3rem 0.5rem;border:1px solid #e5e7eb;border-radius:6px;font-size:0.8rem;text-align:center">
+              <button class="btn-sm btn-blue" onclick="summarizeText()">Generate</button>
+            </div>
+          </div>
+          <div class="summary-output" id="summaryOutput">
+            <em style="color:#9ca3af">Generate a summary from the Input tab...</em>
+          </div>
+          <div style="display:flex;gap:0.5rem;margin-top:1rem">
+            <button class="btn-sm btn-gray" onclick="copySummary()">📋 Copy Summary</button>
+            <button class="btn-sm btn-green" onclick="loadSummaryToReader()">Load to Reader</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- File info bar -->
+      <div id="fileInfoBar" class="hidden" style="background:#fff;border-radius:12px;border:1px solid #e5e7eb;padding:1rem 1.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.5rem">
+        <div>
+          <span style="font-weight:700;font-size:0.9rem;color:#0a0a0a" id="fileInfoName">document.txt</span>
+          <span style="font-size:0.8rem;color:#9ca3af;margin-left:0.5rem" id="fileInfoMeta">0 KB · 0 words</span>
+        </div>
+        <div style="display:flex;gap:0.5rem">
+          <button class="btn-sm btn-gray" onclick="previewCurrentFile()">👁 Preview</button>
+          <button class="btn-sm btn-blue" onclick="saveToLibrary()">💾 Save to Library</button>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- ============================================================
+     PAGE: LIBRARY
+============================================================ -->
+<div id="page-library" class="page">
+  <div class="library-header">
+    <h2>Document Library</h2>
+    <p>Your saved documents — click to open in reader, select multiple to merge.</p>
+  </div>
+  <div class="library-controls">
+    <div class="search-box">
+      <span>🔍</span>
+      <input type="text" placeholder="Search documents..." id="librarySearch" oninput="filterLibrary()">
+    </div>
+    <select class="filter-select" id="typeFilter" onchange="filterLibrary()">
+      <option value="">All Types</option>
+      <option value="txt">TXT</option>
+      <option value="pdf">PDF</option>
+      <option value="doc">DOC</option>
+      <option value="img">Image</option>
+      <option value="other">Other</option>
+    </select>
+    <button class="btn-sm btn-gray" onclick="toggleMergePanel()">🔗 Merge Selected</button>
+    <button class="btn-sm btn-blue" onclick="showPage('reader')">+ Add Document</button>
+  </div>
+  <!-- Merge Panel -->
+  <div class="merge-panel" id="mergePanel">
+    <div style="font-weight:700;font-size:0.9rem;margin-bottom:0.5rem">Selected for Merge</div>
+    <div class="merge-selected" id="mergeSelectedTags"></div>
+    <div style="display:flex;gap:0.5rem">
+      <button class="btn-sm btn-blue" onclick="openMergeModal()">Open Merge Dialog →</button>
+      <button class="btn-sm btn-gray" onclick="clearMergeSelection()">Clear</button>
+    </div>
+  </div>
+  <div class="library-grid" id="libraryGrid"></div>
+  <div id="libraryEmpty" class="hidden" style="text-align:center;padding:5rem 2.5rem;color:#9ca3af">
+    <div style="font-size:4rem;margin-bottom:1rem">📂</div>
+    <div style="font-size:1.1rem;font-weight:700;color:#374151;margin-bottom:0.5rem">Library is empty</div>
+    <div style="font-size:0.875rem;margin-bottom:1.5rem">Upload and save documents from the Reader to build your library.</div>
+    <button class="btn-sm btn-blue" onclick="showPage('reader')" style="padding:0.7rem 1.5rem">+ Add First Document</button>
+  </div>
+</div>
+
+<!-- ============================================================
+     PAGE: TOOLS
+============================================================ -->
+<div id="page-tools" class="page">
+  <div style="padding:2rem 2.5rem;padding-top:calc(80px + 2rem);border-bottom:1px solid #e5e7eb;background:#fff">
+    <div class="section-tag" style="margin-bottom:0.5rem">Tools</div>
+    <h2 style="font-size:1.8rem;font-weight:900;color:#0a0a0a">Document Tools</h2>
+    <p style="color:#6b7280;margin-top:0.3rem">Advanced tools for analyzing, editing, and transforming your documents.</p>
+  </div>
+
+  <div class="tools-layout">
+    <!-- Editor -->
+    <div class="tool-panel" style="grid-column:1/-1">
+      <div class="tool-panel-header">
+        <span class="tool-panel-title">✏️ Document Editor</span>
+        <div style="display:flex;gap:0.5rem">
+          <button class="btn-sm btn-gray" onclick="toolsEditorUndo()">↩ Undo</button>
+          <button class="btn-sm btn-gray" onclick="toolsEditorFormat()">📐 Format</button>
+          <button class="btn-sm btn-blue" onclick="openModal('exportModal')">📤 Export</button>
+        </div>
+      </div>
+      <div class="tool-panel-body">
+        <div style="display:flex;gap:0.5rem;margin-bottom:0.8rem;flex-wrap:wrap">
+          <button class="btn-sm btn-gray" onclick="formatText('bold')" style="font-weight:700">B</button>
+          <button class="btn-sm btn-gray" onclick="formatText('italic')" style="font-style:italic">I</button>
+          <button class="btn-sm btn-gray" onclick="formatText('upper')">AA</button>
+          <button class="btn-sm btn-gray" onclick="formatText('lower')">aa</button>
+          <button class="btn-sm btn-gray" onclick="formatText('title')">Title</button>
+          <button class="btn-sm btn-gray" onclick="formatText('trim')">Trim</button>
+          <button class="btn-sm btn-gray" onclick="findReplace()">Find/Replace</button>
+        </div>
+        <textarea class="full-editor" id="toolsEditor" placeholder="Paste or type content here to edit..." oninput="updateToolsWordCount()"></textarea>
+        <div class="word-count" id="toolsWordCount">0 words · 0 characters</div>
+      </div>
+    </div>
+
+    <!-- Summarizer -->
+    <div class="tool-panel">
+      <div class="tool-panel-header">
+        <span class="tool-panel-title">🤖 AI Summarizer</span>
+        <button class="btn-sm btn-blue" onclick="summarizeTools()">Generate</button>
+      </div>
+      <div class="tool-panel-body">
+        <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:1rem;flex-wrap:wrap">
+          <label style="font-size:0.8rem;font-weight:600;color:#374151">Sentences:</label>
+          <input type="number" id="toolsSummaryCount" value="5" min="1" max="20" style="width:60px;padding:0.3rem 0.5rem;border:1px solid #e5e7eb;border-radius:6px;font-size:0.8rem;text-align:center">
+          <label style="font-size:0.8rem;font-weight:600;color:#374151">Style:</label>
+          <select id="summaryStyle" class="filter-select" style="padding:0.3rem 0.5rem;font-size:0.8rem">
+            <option value="extractive">Extractive</option>
+            <option value="bullet">Bullet Points</option>
+            <option value="tldr">TL;DR</option>
+          </select>
+        </div>
+        <div class="summary-output" id="toolsSummaryOutput">
+          <em style="color:#9ca3af">Generate a summary from your edited document above...</em>
+        </div>
+        <div style="display:flex;gap:0.5rem;margin-top:0.8rem">
+          <button class="btn-sm btn-gray" onclick="copyToolsSummary()">📋 Copy</button>
+          <button class="btn-sm btn-gray" onclick="sendSummaryToEditor()">→ To Editor</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Word Analysis -->
+    <div class="tool-panel">
+      <div class="tool-panel-header">
+        <span class="tool-panel-title">📊 Text Analysis</span>
+        <button class="btn-sm btn-blue" onclick="analyzeText()">Analyze</button>
+      </div>
+      <div class="tool-panel-body">
+        <div id="analysisOutput" style="display:flex;flex-direction:column;gap:0.8rem">
+          <div style="color:#9ca3af;font-size:0.875rem;text-align:center;padding:2rem 0">
+            <em>Analyze your document to see statistics.</em>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Find & Replace -->
+    <div class="tool-panel">
+      <div class="tool-panel-header">
+        <span class="tool-panel-title">🔍 Find & Replace</span>
+      </div>
+      <div class="tool-panel-body">
+        <div style="display:flex;flex-direction:column;gap:0.8rem">
+          <div>
+            <label style="font-size:0.8rem;font-weight:600;color:#374151;display:block;margin-bottom:0.3rem">Find</label>
+            <input type="text" id="findInput" class="editor-area" style="min-height:auto;height:38px;resize:none" placeholder="Search term...">
+          </div>
+          <div>
+            <label style="font-size:0.8rem;font-weight:600;color:#374151;display:block;margin-bottom:0.3rem">Replace with</label>
+            <input type="text" id="replaceInput" class="editor-area" style="min-height:auto;height:38px;resize:none" placeholder="Replacement...">
+          </div>
+          <div style="display:flex;gap:0.5rem;flex-wrap:wrap">
+            <button class="btn-sm btn-gray" onclick="findNext()">Find Next</button>
+            <button class="btn-sm btn-blue" onclick="replaceOne()">Replace</button>
+            <button class="btn-sm btn-red" onclick="replaceAll()">Replace All</button>
+          </div>
+          <div id="findStatus" style="font-size:0.75rem;color:#9ca3af"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Document Merge -->
+    <div class="tool-panel">
+      <div class="tool-panel-header">
+        <span class="tool-panel-title">🔗 Document Merge</span>
+        <button class="btn-sm btn-blue" onclick="showPage('library')">Open Library</button>
+      </div>
+      <div class="tool-panel-body">
+        <p style="font-size:0.875rem;color:#6b7280;margin-bottom:1rem">Select documents from your library to merge them into one unified document.</p>
+        <div id="toolsMergeList" style="display:flex;flex-direction:column;gap:0.4rem;margin-bottom:1rem"></div>
+        <div style="display:flex;gap:0.5rem;flex-wrap:wrap">
+          <button class="btn-sm btn-gray" onclick="showPage('library')">+ Select Documents</button>
+          <button class="btn-sm btn-blue" onclick="mergeSelectedToTools()">Merge →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Diff Checker -->
+    <div class="tool-panel">
+      <div class="tool-panel-header">
+        <span class="tool-panel-title">🔀 Quick Transform</span>
+      </div>
+      <div class="tool-panel-body">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;margin-bottom:1rem">
+          <button class="export-btn" onclick="transformText('removeSpaces')"><span class="export-icon" style="font-size:1.3rem">⬜</span>Remove Extra Spaces</button>
+          <button class="export-btn" onclick="transformText('removeDups')"><span class="export-icon" style="font-size:1.3rem">🗑️</span>Remove Dup Lines</button>
+          <button class="export-btn" onclick="transformText('numberLines')"><span class="export-icon" style="font-size:1.3rem">🔢</span>Number Lines</button>
+          <button class="export-btn" onclick="transformText('reverseLines')"><span class="export-icon" style="font-size:1.3rem">↕️</span>Reverse Lines</button>
+          <button class="export-btn" onclick="transformText('sortLines')"><span class="export-icon" style="font-size:1.3rem">🔤</span>Sort Lines A-Z</button>
+          <button class="export-btn" onclick="transformText('shuffle')"><span class="export-icon" style="font-size:1.3rem">🎲</span>Shuffle Lines</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     PAGE: ABOUT
+============================================================ -->
+<div id="page-about" class="page">
+  <div class="about-hero">
+    <div class="section-tag" style="background:rgba(200,255,0,0.2);color:#c8ff00;margin-bottom:1rem">About MINIDOX</div>
+    <h2>Built for Accessible Reading</h2>
+    <p>MINIDOX is a professional reading assistant designed from the ground up for dyslexic readers, researchers, students, and anyone who wants to read more effectively.</p>
+  </div>
+
+  <div class="about-content">
+    <div class="about-grid animate-on-scroll">
+      <div class="about-block">
+        <h3>Our Mission</h3>
+        <p>Reading difficulties affect 1 in 5 people. MINIDOX exists to level the playing field — giving every reader powerful tools to customize their experience without compromise. From letterform disambiguation to word-by-word progressive highlighting, every feature is designed to reduce cognitive load and increase reading fluency.</p>
+      </div>
+      <div class="about-block">
+        <h3>The Technology</h3>
+        <p>Built entirely in-browser — no server uploads, no accounts, no privacy concerns. CSS custom properties power zero-latency live adjustments. The word highlighter automaton uses requestAnimationFrame for perfectly smooth progression. localStorage preserves your named presets across sessions.</p>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <h3 style="font-size:1.3rem;font-weight:800;color:#0a0a0a;margin-bottom:1.5rem">Core Features</h3>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:3rem">
+      <div style="display:flex;gap:0.8rem;align-items:flex-start;padding:1rem;background:#f9fafb;border-radius:10px">
+        <span style="font-size:1.3rem">🔤</span>
+        <div><div style="font-weight:700;font-size:0.9rem;color:#0a0a0a">OpenDyslexic Font</div><div style="font-size:0.8rem;color:#6b7280;margin-top:0.2rem">Letterform disambiguation reduces character reversal frequency</div></div>
+      </div>
+      <div style="display:flex;gap:0.8rem;align-items:flex-start;padding:1rem;background:#f9fafb;border-radius:10px">
+        <span style="font-size:1.3rem">⚡</span>
+        <div><div style="font-weight:700;font-size:0.9rem;color:#0a0a0a">Zero-Latency Controls</div><div style="font-size:0.8rem;color:#6b7280;margin-top:0.2rem">Synchronous CSS custom property updates on every input event</div></div>
+      </div>
+      <div style="display:flex;gap:0.8rem;align-items:flex-start;padding:1rem;background:#f9fafb;border-radius:10px">
+        <span style="font-size:1.3rem">💾</span>
+        <div><div style="font-weight:700;font-size:0.9rem;color:#0a0a0a">localStorage Presets</div><div style="font-size:0.8rem;color:#6b7280;margin-top:0.2rem">Named configuration presets persisted across browser sessions</div></div>
+      </div>
+      <div style="display:flex;gap:0.8rem;align-items:flex-start;padding:1rem;background:#f9fafb;border-radius:10px">
+        <span style="font-size:1.3rem">🔒</span>
+        <div><div style="font-weight:700;font-size:0.9rem;color:#0a0a0a">100% Private</div><div style="font-size:0.8rem;color:#6b7280;margin-top:0.2rem">All processing happens in your browser — nothing is uploaded</div></div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <h3 style="font-size:1.3rem;font-weight:800;color:#0a0a0a;margin:2rem 0 1.5rem">Frequently Asked Questions</h3>
+    <div class="faq-list">
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)">
+          <span>Is my data safe? Are files uploaded to a server?</span>
+          <span class="faq-arrow">▼</span>
+        </div>
+        <div class="faq-a">Absolutely. MINIDOX processes all documents entirely within your browser. No files, text, or personal data ever leave your device or touch our servers. Your library is stored in your browser's localStorage.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)">
+          <span>What file formats are supported?</span>
+          <span class="faq-arrow">▼</span>
+        </div>
+        <div class="faq-a">TXT, MD, CSV, JSON, XML, HTML files are read directly. PDF and DOCX files extract available text content. Image files (PNG, JPG, GIF, WEBP, BMP) are processed as images with OCR simulation. You can also paste text directly.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)">
+          <span>How does the word highlighter help with dyslexia?</span>
+          <span class="faq-arrow">▼</span>
+        </div>
+        <div class="faq-a">The word-by-word progressive highlighter guides your eyes through text sequentially, significantly reducing regression frequency (re-reading words). The configurable timer lets you set a comfortable reading pace, and the manual advance mode gives full control.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)">
+          <span>How do named presets work?</span>
+          <span class="faq-arrow">▼</span>
+        </div>
+        <div class="faq-a">When you configure your ideal reading settings — font, spacing, tint, highlighting speed — click "Save Current" in the sidebar. Name it (e.g., "Study Mode"). Your preset is saved to localStorage and appears as a one-click restore option on every future visit.</div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(this)">
+          <span>Can I edit documents after uploading?</span>
+          <span class="faq-arrow">▼</span>
+        </div>
+        <div class="faq-a">Yes! Use the Edit toggle in the Reader toolbar to make the reading pane editable in-place. The Tools page has a full document editor with formatting options, find & replace, text transforms, and more.</div>
+      </div>
+    </div>
+
+    <div class="divider" style="margin:3rem 0"></div>
+
+    <div style="text-align:center;color:#9ca3af;font-size:0.875rem">
+      <div style="font-size:2rem;margin-bottom:0.5rem">✦</div>
+      <div style="font-weight:700;color:#0a0a0a;font-size:1.1rem;margin-bottom:0.5rem">MINIDOX</div>
+      <div>Powerful Insights. Precision Edits. © 2025</div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     JAVASCRIPT
+============================================================ -->
+<script>
+/* ============================================================
+   STATE
+============================================================ */
+const state = {
+  currentPage: 'home',
+  currentFont: 'OpenDyslexic',
+  currentFontKey: 'openDyslexic',
+  currentTint: '#ffffff',
+  textColor: '#1f2937',
+  highlightColor: '#fbbf24',
+  letterSpacing: 0,
+  wordSpacing: 0,
+  lineHeight: 1.6,
+  fontSize: 1.1,
+  rulerVisible: true,
+  focusMode: false,
+  autoHighlight: false,
+  highlightSpeed: 1.5,
+  currentWord: -1,
+  words: [],
+  highlightTimer: null,
+  editMode: false,
+  presets: JSON.parse(localStorage.getItem('minidox_presets') || '[]'),
+  library: JSON.parse(localStorage.getItem('minidox_library') || '[]'),
+  mergeSelection: [],
+  currentFileContent: '',
+  currentFileName: '',
+  toolsHistory: [],
+};
+
+/* FONTS MAP */
+const FONTS = {
+  openDyslexic: { name: 'OpenDyslexic', css: 'serif', display: 'OpenDyslexic (Simulated)' },
+  lexend: { name: 'Lexend', css: "'Lexend', sans-serif", display: 'Lexend' },
+  georgia: { name: 'Georgia', css: 'Georgia, serif', display: 'Georgia' },
+  inter: { name: 'Inter', css: "'Inter', sans-serif", display: 'Inter' },
+  courier: { name: 'Courier New', css: "'Courier New', monospace", display: 'Courier New' },
+};
+
+/* ============================================================
+   PAGE NAVIGATION
+============================================================ */
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
+  const navEl = document.getElementById('nav-' + name);
+  if (navEl) navEl.classList.add('active');
+  state.currentPage = name;
+  window.scrollTo(0, 0);
+  if (name === 'library') renderLibrary();
+  if (name === 'tools') renderToolsMergeList();
+  // Close mobile menu
+  document.getElementById('navLinks').classList.remove('open');
+}
+
+function toggleMobileMenu() {
+  document.getElementById('navLinks').classList.toggle('open');
+}
+
+/* ============================================================
+   SCROLL / NAV
+============================================================ */
+window.addEventListener('scroll', () => {
+  const nav = document.getElementById('mainNav');
+  nav.classList.toggle('scrolled', window.scrollY > 50);
+  updateRuler();
+  checkAnimateOnScroll();
+});
+
+function checkAnimateOnScroll() {
+  document.querySelectorAll('.animate-on-scroll').forEach(el => {
+    const rect = el.getBoundingClientRect();
+    if (rect.top < window.innerHeight - 80) el.classList.add('visible');
+  });
+}
+setTimeout(checkAnimateOnScroll, 100);
+
+function updateRuler() {
+  const ruler = document.getElementById('readingRuler');
+  if (!ruler || !state.rulerVisible) return;
+  const el = document.getElementById('readingPane');
+  if (!el) return;
+  const rect = el.getBoundingClientRect();
+  const scrolled = Math.max(0, -rect.top) / Math.max(1, el.offsetHeight - window.innerHeight);
+  ruler.style.transform = `scaleX(${Math.min(1, scrolled)})`;
+}
+
+/* ============================================================
+   DRAG & DROP (global)
+============================================================ */
+document.addEventListener('dragover', e => { e.preventDefault(); });
+document.addEventListener('drop', e => {
+  e.preventDefault();
+  const files = e.dataTransfer.files;
+  if (files.length > 0) {
+    showPage('reader');
+    setTimeout(() => processFile(files[0]), 100);
+  }
+});
+
+/* ============================================================
+   FILE UPLOAD
+============================================================ */
+function handleFileUpload(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  processFile(file);
+  e.target.value = '';
+}
+
+function processFile(file) {
+  state.currentFileName = file.name;
+  const ext = file.name.split('.').pop().toLowerCase();
+  const sizeKB = Math.round(file.size / 1024);
+
+  showToast('info', `📁 Loading ${file.name}...`);
+
+  if (['png','jpg','jpeg','gif','webp','bmp'].includes(ext)) {
+    // Simulate OCR
+    setTimeout(() => {
+      const mockOCR = `[OCR Extracted from ${file.name}]\n\nThis is simulated OCR content extracted from your image file. In a production environment, this would use a real OCR engine such as Tesseract.js to extract text from the image.\n\nImage file: ${file.name}\nFile size: ${sizeKB} KB\nFormat: ${ext.toUpperCase()}\n\nPlease note that image OCR is simulated in this demo. The actual extracted text would appear here.`;
+      loadTextToReader(mockOCR, file.name, sizeKB);
+    }, 800);
+    return;
+  }
+
+  const reader = new FileReader();
+
+  if (ext === 'pdf') {
+    reader.onload = () => {
+      const simText = `[Extracted from ${file.name}]\n\nThis is simulated PDF text extraction. In production, a PDF parsing library (pdf.js) would extract the actual text content.\n\nFile: ${file.name}\nSize: ${sizeKB} KB\n\nLorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.`;
+      loadTextToReader(simText, file.name, sizeKB);
+    };
+    reader.readAsArrayBuffer(file);
+  } else if (['doc','docx'].includes(ext)) {
+    reader.onload = () => {
+      const simText = `[Extracted from ${file.name}]\n\nThis is simulated Word document extraction. In production, mammoth.js would convert the DOCX to readable text.\n\nFile: ${file.name}\nSize: ${sizeKB} KB\n\nDocument content would appear here with all paragraphs, headings, and formatting preserved as plain text for the reader.`;
+      loadTextToReader(simText, file.name, sizeKB);
+    };
+    reader.readAsArrayBuffer(file);
+  } else {
+    // Text-based files
+    reader.onload = (e) => {
+      loadTextToReader(e.target.result, file.name, sizeKB);
+    };
+    reader.readAsText(file);
+  }
+}
+
+function loadTextToReader(text, filename, sizeKB) {
+  state.currentFileContent = text;
+  state.currentFileName = filename;
+  document.getElementById('inputArea').value = text;
+  updateInputWordCount();
+  loadToReader();
+
+  // Show file info bar
+  const bar = document.getElementById('fileInfoBar');
+  bar.classList.remove('hidden');
+  bar.style.display = 'flex';
+  document.getElementById('fileInfoName').textContent = filename;
+  const wc = text.split(/\s+/).filter(Boolean).length;
+  document.getElementById('fileInfoMeta').textContent = `${sizeKB || '?'} KB · ${wc} words`;
+
+  showToast('success', `✅ Loaded: ${filename}`);
+}
+
+/* ============================================================
+   INPUT / READER LOADING
+============================================================ */
+document.getElementById('inputArea').addEventListener('input', updateInputWordCount);
+
+function updateInputWordCount() {
+  const text = document.getElementById('inputArea').value;
+  const words = text.split(/\s+/).filter(Boolean).length;
+  document.getElementById('inputWordCount').textContent = `${words} words · ${text.length} characters`;
+}
+
+function loadToReader() {
+  const text = document.getElementById('inputArea').value.trim();
+  if (!text) { showToast('error', 'Please enter or upload some text first.'); return; }
+  rehydrateReadingPane(text);
+  switchTab('reading', 'reader');
+  showToast('success', 'Text loaded to reader!');
+}
+
+function rehydrateReadingPane(text) {
+  const pane = document.getElementById('readingContent');
+  const words = text.split(/(\s+)/);
+  state.words = [];
+  let html = '';
+  let wordIdx = 0;
+  words.forEach(part => {
+    if (/^\s+$/.test(part)) {
+      html += part.replace(/\n/g, '<br>');
+    } else if (part.length > 0) {
+      html += `<span class="word" data-idx="${wordIdx}" onclick="clickWord(${wordIdx})">${escHtml(part)}</span>`;
+      state.words.push(part);
+      wordIdx++;
+    }
+  });
+  pane.innerHTML = html || '<em style="color:#9ca3af">Empty document.</em>';
+  state.currentWord = -1;
+  document.getElementById('wordPos').textContent = '0';
+  document.getElementById('wordTotal').textContent = state.words.length;
+  applyReadingStyles();
+}
+
+function escHtml(t) {
+  return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function clickWord(idx) {
+  state.currentWord = idx;
+  highlightWordAt(idx);
+}
+
+function clearInput() {
+  document.getElementById('inputArea').value = '';
+  updateInputWordCount();
+  showToast('info', 'Input cleared.');
+}
+
+/* ============================================================
+   READING STYLES
+============================================================ */
+function applyReadingStyles() {
+  const pane = document.getElementById('readingPane');
+  const content = document.getElementById('readingContent');
+  if (!pane || !content) return;
+  pane.style.background = state.currentTint === '#0a0a0a' ? '#0a0a0a' : state.currentTint;
+  content.style.fontFamily = FONTS[state.currentFontKey]?.css || "'Inter',sans-serif";
+  content.style.letterSpacing = state.letterSpacing + 'em';
+  content.style.wordSpacing = state.wordSpacing + 'em';
+  content.style.lineHeight = state.lineHeight;
+  content.style.fontSize = state.fontSize + 'rem';
+  content.style.color = state.currentTint === '#0a0a0a' ? '#e5e7eb' : state.textColor;
+}
+
+function setFont(name, key) {
+  state.currentFont = name;
+  state.currentFontKey = key;
+  document.querySelectorAll('.font-option').forEach(o => o.classList.remove('active'));
+  document.getElementById('font-' + key).classList.add('active');
+  applyReadingStyles();
+  showToast('info', `Font: ${FONTS[key]?.display || name}`);
+}
+
+function updateSpacing() {
+  state.letterSpacing = parseFloat(document.getElementById('letterSpacing').value);
+  state.wordSpacing = parseFloat(document.getElementById('wordSpacing').value);
+  state.lineHeight = parseFloat(document.getElementById('lineHeight').value);
+  state.fontSize = parseFloat(document.getElementById('fontSize').value);
+  document.getElementById('lsVal').textContent = state.letterSpacing.toFixed(2) + 'em';
+  document.getElementById('wsVal').textContent = state.wordSpacing.toFixed(2) + 'em';
+  document.getElementById('lhVal').textContent = state.lineHeight.toFixed(1);
+  document.getElementById('fsVal').textContent = state.fontSize.toFixed(2) + 'rem';
+  applyReadingStyles();
+}
+
+function setTint(el) {
+  state.currentTint = el.dataset.tint;
+  document.querySelectorAll('.tint-swatch').forEach(s => s.classList.remove('active'));
+  el.classList.add('active');
+  applyReadingStyles();
+  showToast('info', `Tint: ${el.dataset.name}`);
+}
+
+function updateTextColor() {
+  state.textColor = document.getElementById('textColorPicker').value;
+  applyReadingStyles();
+}
+
+function updateHighlightColor() {
+  state.highlightColor = document.getElementById('highlightColorPicker').value;
+  const hex = state.highlightColor;
+  const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+  document.documentElement.style.setProperty('--highlight-color', `rgba(${r},${g},${b},0.5)`);
+}
+
+/* ============================================================
+   WORD HIGHLIGHTER
+============================================================ */
+function highlightWordAt(idx) {
+  document.querySelectorAll('.word').forEach(w => {
+    w.classList.remove('current-highlight');
+  });
+  const wordEls = document.querySelectorAll('.word');
+  if (wordEls[idx]) {
+    wordEls[idx].classList.add('current-highlight');
+    wordEls[idx].scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+  state.currentWord = idx;
+  document.getElementById('wordPos').textContent = idx + 1;
+}
+
+function nextWord() {
+  if (state.words.length === 0) return;
+  const next = (state.currentWord + 1) % state.words.length;
+  highlightWordAt(next);
+}
+
+function prevWord() {
+  if (state.words.length === 0) return;
+  const prev = state.currentWord <= 0 ? state.words.length - 1 : state.currentWord - 1;
+  highlightWordAt(prev);
+}
+
+function resetHighlight() {
+  document.querySelectorAll('.word').forEach(w => w.classList.remove('current-highlight'));
+  state.currentWord = -1;
+  document.getElementById('wordPos').textContent = '0';
+  stopAutoHighlight();
+}
+
+function toggleAuto() {
+  state.autoHighlight = !state.autoHighlight;
+  const btn = document.getElementById('autoToggle');
+  btn.classList.toggle('on', state.autoHighlight);
+  if (state.autoHighlight) startAutoHighlight();
+  else stopAutoHighlight();
+  showToast('info', state.autoHighlight ? '⚡ Auto-advance ON' : '⏸ Auto-advance OFF');
+}
+
+function startAutoHighlight() {
+  stopAutoHighlight();
+  const speed = parseFloat(document.getElementById('speedInput').value) * 1000;
+  state.highlightTimer = setInterval(() => {
+    if (state.words.length === 0) return;
+    const next = state.currentWord < 0 ? 0 : (state.currentWord + 1) % state.words.length;
+    highlightWordAt(next);
+    if (next === 0 && state.currentWord > 0) {
+      showToast('success', '📖 Reached end — looping from start.');
+    }
+  }, speed);
+}
+
+function stopAutoHighlight() {
+  if (state.highlightTimer) { clearInterval(state.highlightTimer); state.highlightTimer = null; }
+}
+
+/* ============================================================
+   EDIT MODE
+============================================================ */
+function toggleEditMode() {
+  state.editMode = !state.editMode;
+  const btn = document.getElementById('editModeBtn');
+  const content = document.getElementById('readingContent');
+  content.contentEditable = state.editMode ? 'true' : 'false';
+  btn.style.background = state.editMode ? '#2626e6' : '';
+  btn.style.color = state.editMode ? '#fff' : '';
+  showToast('info', state.editMode ? '✏️ Edit mode ON — click to type' : '✅ Edit mode OFF');
+}
+
+/* ============================================================
+   FOCUS / FULLSCREEN
+============================================================ */
+function toggleFocusMode() {
+  const btn = document.getElementById('focusToggle');
+  state.focusMode = !state.focusMode;
+  btn.classList.toggle('on', state.focusMode);
+}
+
+function toggleFullscreen() {
+  const layout = document.getElementById('readerLayout');
+  layout.classList.toggle('fullscreen-mode');
+  showToast('info', layout.classList.contains('fullscreen-mode') ? '⛶ Focus mode ON' : '⊞ Normal view');
+}
+
+function toggleRuler() {
+  const btn = document.getElementById('rulerToggle');
+  state.rulerVisible = !state.rulerVisible;
+  btn.classList.toggle('on', state.rulerVisible);
+  document.getElementById('readingRuler').style.display = state.rulerVisible ? 'block' : 'none';
+}
+
+/* ============================================================
+   SUMMARIZER
+============================================================ */
+function summarizeText() {
+  const text = document.getElementById('inputArea').value.trim();
+  if (!text) { showToast('error', 'No text to summarize. Load content first.'); return; }
+  const n = parseInt(document.getElementById('summaryCount').value) || 4;
+  const summary = extractiveSummarize(text, n);
+  document.getElementById('summaryOutput').innerHTML = summary;
+  switchTab('summary', 'reader');
+  showToast('success', '🤖 Summary generated!');
+}
+
+function extractiveSummarize(text, n) {
+  const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
+  if (sentences.length <= n) return sentences.map(s => `<p>${escHtml(s.trim())}</p>`).join('');
+  // Score by word frequency
+  const wordFreq = {};
+  const allWords = text.toLowerCase().split(/\W+/).filter(w => w.length > 3);
+  allWords.forEach(w => wordFreq[w] = (wordFreq[w] || 0) + 1);
+  const scored = sentences.map((s, i) => {
+    const words = s.toLowerCase().split(/\W+/).filter(w => w.length > 3);
+    const score = words.reduce((sum, w) => sum + (wordFreq[w] || 0), 0) / Math.max(1, words.length);
+    return { s: s.trim(), score, i };
+  });
+  const top = [...scored].sort((a, b) => b.score - a.score).slice(0, n);
+  top.sort((a, b) => a.i - b.i);
+  return top.map(t => `<p style="margin-bottom:0.7rem;padding:0.7rem;background:#f9fafb;border-radius:8px;border-left:3px solid #2626e6">${escHtml(t.s)}</p>`).join('');
+}
+
+function copySummary() {
+  const el = document.getElementById('summaryOutput');
+  navigator.clipboard.writeText(el.innerText || el.textContent).then(() => showToast('success', '📋 Summary copied!'));
+}
+
+function loadSummaryToReader() {
+  const el = document.getElementById('summaryOutput');
+  const text = el.innerText || el.textContent;
+  if (!text.trim() || text.includes('Generate a summary')) { showToast('error', 'No summary to load.'); return; }
+  document.getElementById('inputArea').value = text;
+  loadToReader();
+}
+
+/* ============================================================
+   PRESETS
+============================================================ */
+function getCurrentSettings() {
+  return {
+    fontKey: state.currentFontKey,
+    tint: state.currentTint,
+    textColor: state.textColor,
+    highlightColor: state.highlightColor,
+    letterSpacing: state.letterSpacing,
+    wordSpacing: state.wordSpacing,
+    lineHeight: state.lineHeight,
+    fontSize: state.fontSize,
+    highlightSpeed: parseFloat(document.getElementById('speedInput').value),
+  };
+}
+
+function applySettings(s) {
+  setFont(FONTS[s.fontKey]?.name || 'Inter', s.fontKey);
+  document.getElementById('letterSpacing').value = s.letterSpacing;
+  document.getElementById('wordSpacing').value = s.wordSpacing;
+  document.getElementById('lineHeight').value = s.lineHeight;
+  document.getElementById('fontSize').value = s.fontSize || 1.1;
+  document.getElementById('speedInput').value = s.highlightSpeed || 1.5;
+  document.getElementById('textColorPicker').value = s.textColor || '#1f2937';
+  document.getElementById('highlightColorPicker').value = s.highlightColor || '#fbbf24';
+  state.textColor = s.textColor || '#1f2937';
+  state.highlightColor = s.highlightColor || '#fbbf24';
+  updateSpacing();
+  // Tint
+  const sw = document.querySelector(`.tint-swatch[data-tint="${s.tint}"]`);
+  if (sw) setTint(sw);
+  else { state.currentTint = s.tint || '#ffffff'; applyReadingStyles(); }
+}
+
+function confirmSavePreset() {
+  const name = document.getElementById('presetNameInput').value.trim();
+  if (!name) { showToast('error', 'Please enter a preset name.'); return; }
+  const preset = { name, settings: getCurrentSettings(), created: Date.now() };
+  state.presets = state.presets.filter(p => p.name !== name);
+  state.presets.push(preset);
+  localStorage.setItem('minidox_presets', JSON.stringify(state.presets));
+  renderPresets();
+  closeModal('presetModal');
+  document.getElementById('presetNameInput').value = '';
+  showToast('success', `💾 Preset "${name}" saved!`);
+}
+
+function loadPreset(name) {
+  const p = state.presets.find(x => x.name === name);
+  if (!p) return;
+  applySettings(p.settings);
+  showToast('success', `✅ Preset "${name}" loaded!`);
+}
+
+function deletePreset(name) {
+  state.presets = state.presets.filter(p => p.name !== name);
+  localStorage.setItem('minidox_presets', JSON.stringify(state.presets));
+  renderPresets();
+  showToast('info', `🗑 Preset "${name}" deleted.`);
+}
+
+function renderPresets() {
+  const list = document.getElementById('presetList');
+  if (!list) return;
+  if (state.presets.length === 0) {
+    list.innerHTML = '<div style="font-size:0.75rem;color:#9ca3af;text-align:center;padding:0.5rem">No presets yet</div>';
+    return;
+  }
+  list.innerHTML = state.presets.map(p => `
+    <div class="preset-item">
+      <span class="preset-item-name" onclick="loadPreset('${escAttr(p.name)}')" title="Click to load">${escHtml(p.name)}</span>
+      <button class="preset-del" onclick="deletePreset('${escAttr(p.name)}')" title="Delete">×</button>
+    </div>
+  `).join('');
+}
+
+function resetSettings() {
+  document.getElementById('letterSpacing').value = 0;
+  document.getElementById('wordSpacing').value = 0;
+  document.getElementById('lineHeight').value = 1.6;
+  document.getElementById('fontSize').value = 1.1;
+  updateSpacing();
+  const whiteSwitch = document.querySelector('.tint-swatch[data-tint="#ffffff"]');
+  if (whiteSwitch) setTint(whiteSwitch);
+  setFont('OpenDyslexic', 'openDyslexic');
+  showToast('info', 'Settings reset to default.');
+}
+
+function escAttr(s) { return s.replace(/'/g, "\\'"); }
+
+// Initialize presets on load
+renderPresets();
+
+/* ============================================================
+   LIBRARY
+============================================================ */
+function saveToLibrary() {
+  const text = document.getElementById('inputArea').value.trim();
+  if (!text) { showToast('error', 'No text to save.'); return; }
+  const name = state.currentFileName || `Document_${Date.now()}.txt`;
+  const ext = name.split('.').pop().toLowerCase();
+  const existing = state.library.findIndex(d => d.name === name);
+  const doc = {
+    id: Date.now(),
+    name,
+    ext: ['pdf','doc','docx'].includes(ext) ? ext : (['png','jpg','jpeg','gif','webp'].includes(ext) ? 'img' : 'txt'),
+    content: text,
+    size: Math.round(text.length / 1024 * 10) / 10,
+    words: text.split(/\s+/).filter(Boolean).length,
+    saved: new Date().toLocaleDateString(),
+  };
+  if (existing >= 0) state.library[existing] = doc;
+  else state.library.push(doc);
+  localStorage.setItem('minidox_library', JSON.stringify(state.library));
+  showToast('success', `💾 Saved "${name}" to library!`);
+}
+
+function renderLibrary() {
+  const grid = document.getElementById('libraryGrid');
+  const empty = document.getElementById('libraryEmpty');
+  const query = document.getElementById('librarySearch')?.value.toLowerCase() || '';
+  const typeF = document.getElementById('typeFilter')?.value || '';
+
+  let docs = state.library.filter(d => {
+    const matchQ = d.name.toLowerCase().includes(query) || d.content.toLowerCase().includes(query);
+    const matchT = !typeF || d.ext === typeF || (typeF === 'other' && !['pdf','doc','txt','img'].includes(d.ext));
+    return matchQ && matchT;
+  });
+
+  if (docs.length === 0) {
+    grid.innerHTML = '';
+    empty.classList.remove('hidden');
+    return;
+  }
+  empty.classList.add('hidden');
+
+  const icons = { pdf:'📕', doc:'📘', docx:'📘', txt:'📄', img:'🖼️', md:'📝', csv:'📊', json:'⚙️', xml:'🗂️' };
+  const bgs = ['bg-blue','bg-lime','bg-purple','bg-orange','bg-pink','bg-green'];
+  const typeCls = { pdf:'type-pdf', doc:'type-doc', docx:'type-doc', txt:'type-txt', img:'type-img' };
+
+  grid.innerHTML = docs.map((d, i) => {
+    const sel = state.mergeSelection.includes(d.id);
+    return `
+    <div class="doc-item ${sel ? 'selected' : ''}" style="${sel ? 'border-color:#2626e6;box-shadow:0 0 0 3px rgba(38,38,230,0.15)' : ''}">
+      <div class="doc-item-header ${bgs[i % bgs.length]}" style="position:relative">
+        <span class="doc-type-badge ${typeCls[d.ext] || 'type-txt'}">${d.ext.toUpperCase()}</span>
+        ${icons[d.ext] || '📄'}
+      </div>
+      <div class="doc-item-body">
+        <div class="doc-item-name" title="${escHtml(d.name)}">${escHtml(d.name)}</div>
+        <div class="doc-item-meta">${d.size} KB · ${d.words} words · ${d.saved}</div>
+        <div class="doc-item-actions">
+          <button class="btn-sm btn-blue" style="flex:1" onclick="openDocInReader(${d.id})">Open</button>
+          <button class="btn-sm btn-gray" onclick="previewDoc(${d.id})" data-tip="Preview">👁</button>
+          <button class="btn-sm ${sel ? 'btn-red' : 'btn-gray'}" onclick="toggleMergeSelect(${d.id})" data-tip="${sel ? 'Deselect' : 'Select for merge'}">🔗</button>
+          <button class="btn-sm btn-gray" onclick="deleteFromLibrary(${d.id})" data-tip="Delete">🗑</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+  renderMergeSelection();
+}
+
+function filterLibrary() { renderLibrary(); }
+
+function openDocInReader(id) {
+  const doc = state.library.find(d => d.id === id);
+  if (!doc) return;
+  state.currentFileName = doc.name;
+  document.getElementById('inputArea').value = doc.content;
+  loadToReader();
+  showPage('reader');
+  showToast('success', `Opened: ${doc.name}`);
+}
+
+function previewDoc(id) {
+  const doc = state.library.find(d => d.id === id);
+  if (!doc) return;
+  document.getElementById('previewTitle').textContent = doc.name;
+  document.getElementById('previewBody').textContent = doc.content.slice(0, 2000) + (doc.content.length > 2000 ? '\n\n[... truncated for preview ...]' : '');
+  document.getElementById('previewModal').dataset.docId = id;
+  openModal('previewModal');
+}
+
+function openInReader() {
+  const id = parseInt(document.getElementById('previewModal').dataset.docId);
+  closeModal('previewModal');
+  openDocInReader(id);
+}
+
+function deleteFromLibrary(id) {
+  state.library = state.library.filter(d => d.id !== id);
+  state.mergeSelection = state.mergeSelection.filter(x => x !== id);
+  localStorage.setItem('minidox_library', JSON.stringify(state.library));
+  renderLibrary();
+  showToast('info', 'Document deleted from library.');
+}
+
+function toggleMergeSelect(id) {
+  const idx = state.mergeSelection.indexOf(id);
+  if (idx >= 0) state.mergeSelection.splice(idx, 1);
+  else state.mergeSelection.push(id);
+  renderLibrary();
+}
+
+function renderMergeSelection() {
+  const tags = document.getElementById('mergeSelectedTags');
+  if (!tags) return;
+  tags.innerHTML = state.mergeSelection.map(id => {
+    const doc = state.library.find(d => d.id === id);
+    if (!doc) return '';
+    return `<div class="merge-tag">${escHtml(doc.name)}<button onclick="toggleMergeSelect(${id})">×</button></div>`;
+  }).join('');
+  const panel = document.getElementById('mergePanel');
+  panel.classList.toggle('visible', state.mergeSelection.length > 0);
+}
+
+function toggleMergePanel() {
+  if (state.mergeSelection.length === 0) { showToast('info', 'Select documents using the 🔗 button first.'); return; }
+  openMergeModal();
+}
+
+function clearMergeSelection() {
+  state.mergeSelection = [];
+  renderLibrary();
+}
+
+function openMergeModal() {
+  if (state.mergeSelection.length < 2) { showToast('error', 'Select at least 2 documents to merge.'); return; }
+  const list = document.getElementById('mergeDocList');
+  list.innerHTML = state.mergeSelection.map(id => {
+    const doc = state.library.find(d => d.id === id);
+    return doc ? `<div class="preset-item"><span style="font-weight:600;font-size:0.85rem">${escHtml(doc.name)}</span><span style="font-size:0.75rem;color:#9ca3af">${doc.words} words</span></div>` : '';
+  }).join('');
+  openModal('mergeModal');
+}
+
+function performMerge() {
+  const sep = document.getElementById('mergeSeparator').value.replace(/\\n/g, '\n');
+  const merged = state.mergeSelection.map(id => {
+    const doc = state.library.find(d => d.id === id);
+    return doc ? `=== ${doc.name} ===\n\n${doc.content}` : '';
+  }).filter(Boolean).join(sep);
+  closeModal('mergeModal');
+  document.getElementById('inputArea').value = merged;
+  state.currentFileName = 'merged_document.txt';
+  loadToReader();
+  showPage('reader');
+  showToast('success', `✅ Merged ${state.mergeSelection.length} documents!`);
+}
+
+function previewCurrentFile() {
+  const text = document.getElementById('inputArea').value;
+  if (!text.trim()) { showToast('error', 'No content to preview.'); return; }
+  document.getElementById('previewTitle').textContent = state.currentFileName || 'Preview';
+  document.getElementById('previewBody').textContent = text.slice(0, 2000) + (text.length > 2000 ? '\n\n[... truncated ...]' : '');
+  openModal('previewModal');
+}
+
+/* ============================================================
+   EXPORT
+============================================================ */
+function exportDoc(format) {
+  const content = document.getElementById('inputArea').value || document.getElementById('readingContent')?.innerText || '';
+  if (!content.trim()) { showToast('error', 'No content to export.'); return; }
+  const name = (state.currentFileName || 'minidox_export').replace(/\.[^.]+$/, '');
+
+  if (format === 'copy') {
+    navigator.clipboard.writeText(content).then(() => {
+      showToast('success', '📋 Copied to clipboard!');
+      closeModal('exportModal');
+    });
+    return;
+  }
+  let blob, filename;
+  if (format === 'txt') {
+    blob = new Blob([content], { type: 'text/plain' });
+    filename = name + '.txt';
+  } else if (format === 'html') {
+    const html = `<!DOCTYPE html>\n<html lang="en">\n<head>\n<meta charset="UTF-8">\n<title>${escHtml(name)}</title>\n<style>body{font-family:${FONTS[state.currentFontKey]?.css||'sans-serif'};background:${state.currentTint};color:${state.textColor};max-width:800px;margin:2rem auto;padding:2rem;line-height:${state.lineHeight};letter-spacing:${state.letterSpacing}em;word-spacing:${state.wordSpacing}em;font-size:${state.fontSize}rem}</style>\n</head>\n<body>\n<pre style="white-space:pre-wrap">${escHtml(content)}</pre>\n</body>\n</html>`;
+    blob = new Blob([html], { type: 'text/html' });
+    filename = name + '.html';
+  } else if (format === 'md') {
+    blob = new Blob(['# ' + name + '\n\n' + content], { type: 'text/markdown' });
+    filename = name + '.md';
+  }
+  if (blob) {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename; a.click();
+    URL.revokeObjectURL(url);
+    showToast('success', `📥 Exported as ${filename}`);
+    closeModal('exportModal');
+  }
+}
+
+/* ============================================================
+   TABS
+============================================================ */
+function switchTab(name, page) {
+  const prefix = page === 'reader' ? 'tab-' : 'tools-tab-';
+  document.querySelectorAll(`#page-${page} .tab-content`).forEach(t => t.classList.remove('active'));
+  document.querySelectorAll(`#page-${page} .tab-btn`).forEach(b => b.classList.remove('active'));
+  const el = document.getElementById('tab-' + name);
+  if (el) el.classList.add('active');
+  // Find matching button
+  document.querySelectorAll(`#page-${page} .tab-btn`).forEach(b => {
+    if (b.getAttribute('onclick')?.includes(`'${name}'`)) b.classList.add('active');
+  });
+}
+
+/* ============================================================
+   TOOLS PAGE
+============================================================ */
+function updateToolsWordCount() {
+  const t = document.getElementById('toolsEditor').value;
+  const w = t.split(/\s+/).filter(Boolean).length;
+  document.getElementById('toolsWordCount').textContent = `${w} words · ${t.length} characters`;
+}
+
+function toolsEditorUndo() {
+  if (state.toolsHistory.length > 0) {
+    document.getElementById('toolsEditor').value = state.toolsHistory.pop();
+    updateToolsWordCount();
+    showToast('info', '↩ Undo');
+  } else showToast('error', 'Nothing to undo.');
+}
+
+function toolsEditorFormat() {
+  const t = document.getElementById('toolsEditor');
+  saveToolsHistory();
+  // Remove extra blank lines
+  t.value = t.value.replace(/\n{3,}/g, '\n\n').trim();
+  updateToolsWordCount();
+  showToast('success', '📐 Text formatted.');
+}
+
+function saveToolsHistory() {
+  state.toolsHistory.push(document.getElementById('toolsEditor').value);
+  if (state.toolsHistory.length > 20) state.toolsHistory.shift();
+}
+
+function formatText(type) {
+  const t = document.getElementById('toolsEditor');
+  saveToolsHistory();
+  let v = t.value;
+  if (type === 'upper') v = v.toUpperCase();
+  else if (type === 'lower') v = v.toLowerCase();
+  else if (type === 'title') v = v.replace(/\b\w/g, c => c.toUpperCase());
+  else if (type === 'trim') v = v.split('\n').map(l => l.trim()).join('\n');
+  t.value = v;
+  updateToolsWordCount();
+}
+
+function summarizeTools() {
+  const text = document.getElementById('toolsEditor').value.trim();
+  if (!text) {
+    // Use reader content
+    const rc = document.getElementById('inputArea').value.trim();
+    if (!rc) { showToast('error', 'No text to summarize.'); return; }
+    document.getElementById('toolsEditor').value = rc;
+    updateToolsWordCount();
+  }
+  const t = document.getElementById('toolsEditor').value.trim();
+  const n = parseInt(document.getElementById('toolsSummaryCount').value) || 5;
+  const style = document.getElementById('summaryStyle').value;
+  let summary;
+  if (style === 'bullet') {
+    const sents = extractiveSummarizePlain(t, n);
+    summary = sents.map(s => `• ${s}`).join('\n');
+    document.getElementById('toolsSummaryOutput').innerHTML = summary.split('\n').map(l => `<div style="padding:0.3rem 0;border-bottom:1px solid #f3f4f6">${escHtml(l)}</div>`).join('');
+  } else if (style === 'tldr') {
+    const sents = extractiveSummarizePlain(t, Math.min(2, n));
+    summary = 'TL;DR: ' + sents.join(' ');
+    document.getElementById('toolsSummaryOutput').innerHTML = `<strong>TL;DR:</strong> ${escHtml(sents.join(' '))}`;
+  } else {
+    document.getElementById('toolsSummaryOutput').innerHTML = extractiveSummarize(t, n);
+  }
+  showToast('success', '🤖 Summary generated!');
+}
+
+function extractiveSummarizePlain(text, n) {
+  const sentences = text.match(/[^.!?]+[.!?]+/g) || [text];
+  if (sentences.length <= n) return sentences.map(s => s.trim());
+  const wordFreq = {};
+  text.toLowerCase().split(/\W+/).filter(w => w.length > 3).forEach(w => wordFreq[w] = (wordFreq[w] || 0) + 1);
+  const scored = sentences.map((s, i) => {
+    const words = s.toLowerCase().split(/\W+/).filter(w => w.length > 3);
+    const score = words.reduce((sum, w) => sum + (wordFreq[w] || 0), 0) / Math.max(1, words.length);
+    return { s: s.trim(), score, i };
+  });
+  return [...scored].sort((a, b) => b.score - a.score).slice(0, n).sort((a, b) => a.i - b.i).map(x => x.s);
+}
+
+function copyToolsSummary() {
+  const el = document.getElementById('toolsSummaryOutput');
+  navigator.clipboard.writeText(el.innerText || el.textContent).then(() => showToast('success', '📋 Copied!'));
+}
+
+function sendSummaryToEditor() {
+  const el = document.getElementById('toolsSummaryOutput');
+  document.getElementById('toolsEditor').value = el.innerText || el.textContent;
+  updateToolsWordCount();
+  showToast('success', 'Summary sent to editor.');
+}
+
+function analyzeText() {
+  const text = document.getElementById('toolsEditor').value.trim();
+  if (!text) { showToast('error', 'No text to analyze.'); return; }
+  const words = text.split(/\s+/).filter(Boolean);
+  const sentences = (text.match(/[^.!?]+[.!?]+/g) || []).length;
+  const paragraphs = text.split(/\n\n+/).filter(Boolean).length;
+  const avgWordLen = words.reduce((s, w) => s + w.replace(/\W/g, '').length, 0) / Math.max(1, words.length);
+  const readingTime = Math.ceil(words.length / 200);
+  const freqMap = {};
+  words.map(w => w.toLowerCase().replace(/\W/g, '')).filter(w => w.length > 3).forEach(w => freqMap[w] = (freqMap[w] || 0) + 1);
+  const topWords = Object.entries(freqMap).sort((a, b) => b[1] - a[1]).slice(0, 5);
+  const charCount = text.length;
+  const charNoSpace = text.replace(/\s/g, '').length;
+
+  document.getElementById('analysisOutput').innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.7rem">
+      ${stat('Words', words.length)}
+      ${stat('Characters', charCount)}
+      ${stat('Chars (no spaces)', charNoSpace)}
+      ${stat('Sentences', sentences)}
+      ${stat('Paragraphs', paragraphs)}
+      ${stat('Avg word length', avgWordLen.toFixed(1) + ' chars')}
+      ${stat('Reading time', readingTime + ' min')}
+      ${stat('Unique words', Object.keys(freqMap).length)}
+    </div>
+    <div style="margin-top:1rem">
+      <div style="font-size:0.75rem;font-weight:700;color:#374151;margin-bottom:0.5rem;text-transform:uppercase;letter-spacing:0.05em">Top Words</div>
+      <div style="display:flex;flex-wrap:wrap;gap:0.4rem">
+        ${topWords.map(([w, c]) => `<span class="badge badge-blue">${escHtml(w)} (${c})</span>`).join('')}
+      </div>
+    </div>`;
+}
+
+function stat(label, value) {
+  return `<div style="background:#f9fafb;border-radius:8px;padding:0.7rem">
+    <div style="font-size:0.7rem;color:#9ca3af;font-weight:600;text-transform:uppercase;letter-spacing:0.05em">${label}</div>
+    <div style="font-size:1.1rem;font-weight:800;color:#2626e6;margin-top:0.2rem">${value}</div>
+  </div>`;
+}
+
+/* Find & Replace */
+function findReplace() {
+  document.getElementById('findInput').focus();
+  showToast('info', 'Use the Find & Replace panel below.');
+}
+
+function findNext() {
+  const find = document.getElementById('findInput').value;
+  const text = document.getElementById('toolsEditor').value;
+  if (!find) return;
+  const idx = text.indexOf(find);
+  if (idx >= 0) {
+    const t = document.getElementById('toolsEditor');
+    t.focus(); t.setSelectionRange(idx, idx + find.length);
+    document.getElementById('findStatus').textContent = `Found at position ${idx}`;
+  } else {
+    document.getElementById('findStatus').textContent = 'Not found.';
+  }
+}
+
+function replaceOne() {
+  const find = document.getElementById('findInput').value;
+  const repl = document.getElementById('replaceInput').value;
+  const t = document.getElementById('toolsEditor');
+  saveToolsHistory();
+  const idx = t.value.indexOf(find);
+  if (idx >= 0) {
+    t.value = t.value.slice(0, idx) + repl + t.value.slice(idx + find.length);
+    updateToolsWordCount();
+    document.getElementById('findStatus').textContent = 'Replaced 1 occurrence.';
+  } else {
+    document.getElementById('findStatus').textContent = 'Not found.';
+  }
+}
+
+function replaceAll() {
+  const find = document.getElementById('findInput').value;
+  const repl = document.getElementById('replaceInput').value;
+  const t = document.getElementById('toolsEditor');
+  saveToolsHistory();
+  const count = (t.value.split(find).length - 1);
+  t.value = t.value.split(find).join(repl);
+  updateToolsWordCount();
+  document.getElementById('findStatus').textContent = `Replaced ${count} occurrence(s).`;
+}
+
+/* Transforms */
+function transformText(type) {
+  const t = document.getElementById('toolsEditor');
+  saveToolsHistory();
+  let lines = t.value.split('\n');
+  if (type === 'removeSpaces') t.value = t.value.replace(/[ \t]+/g, ' ').replace(/  +/g, ' ');
+  else if (type === 'removeDups') { const seen = new Set(); t.value = lines.filter(l => { if (seen.has(l)) return false; seen.add(l); return true; }).join('\n'); }
+  else if (type === 'numberLines') t.value = lines.map((l, i) => `${i + 1}. ${l}`).join('\n');
+  else if (type === 'reverseLines') t.value = lines.reverse().join('\n');
+  else if (type === 'sortLines') t.value = lines.sort((a, b) => a.localeCompare(b)).join('\n');
+  else if (type === 'shuffle') { for (let i = lines.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [lines[i], lines[j]] = [lines[j], lines[i]]; } t.value = lines.join('\n'); }
+  updateToolsWordCount();
+  showToast('success', 'Transform applied!');
+}
+
+function renderToolsMergeList() {
+  const list = document.getElementById('toolsMergeList');
+  if (!list) return;
+  if (state.library.length === 0) {
+    list.innerHTML = '<div style="font-size:0.8rem;color:#9ca3af">No documents in library. Add documents from the Reader.</div>';
+    return;
+  }
+  list.innerHTML = state.library.slice(0, 5).map(d => `
+    <div style="display:flex;align-items:center;gap:0.5rem;padding:0.5rem 0.8rem;background:#f9fafb;border-radius:8px">
+      <input type="checkbox" id="merge-${d.id}" onchange="updateToolsMergeSelection()">
+      <label for="merge-${d.id}" style="font-size:0.8rem;font-weight:600;cursor:pointer;flex:1">${escHtml(d.name)}</label>
+      <span style="font-size:0.7rem;color:#9ca3af">${d.words}w</span>
+    </div>`).join('');
+}
+
+function updateToolsMergeSelection() {}
+
+function mergeSelectedToTools() {
+  const checks = document.querySelectorAll('#toolsMergeList input[type=checkbox]:checked');
+  if (checks.length < 2) { showToast('error', 'Check at least 2 documents.'); return; }
+  const merged = Array.from(checks).map(c => {
+    const id = parseInt(c.id.replace('merge-', ''));
+    const doc = state.library.find(d => d.id === id);
+    return doc ? `=== ${doc.name} ===\n\n${doc.content}` : '';
+  }).filter(Boolean).join('\n\n---\n\n');
+  document.getElementById('toolsEditor').value = merged;
+  updateToolsWordCount();
+  showToast('success', `✅ Merged ${checks.length} documents into editor!`);
+}
+
+/* ============================================================
+   FAQ
+============================================================ */
+function toggleFaq(el) {
+  const answer = el.nextElementSibling;
+  const arrow = el.querySelector('.faq-arrow');
+  const isOpen = answer.classList.contains('open');
+  document.querySelectorAll('.faq-a').forEach(a => a.classList.remove('open'));
+  document.querySelectorAll('.faq-arrow').forEach(a => a.textContent = '▼');
+  if (!isOpen) {
+    answer.classList.add('open');
+    arrow.textContent = '▲';
+  }
+}
+
+/* ============================================================
+   MODALS
+============================================================ */
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+// Close on overlay click
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', e => {
+    if (e.target === overlay) overlay.classList.remove('open');
+  });
+});
+
+/* ============================================================
+   TOAST
+============================================================ */
+function showToast(type, message) {
+  const container = document.getElementById('toastContainer');
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  const icons = { success: '✅', error: '❌', info: 'ℹ️' };
+  toast.innerHTML = `<span>${icons[type] || 'ℹ️'}</span><span>${message}</span>`;
+  container.appendChild(toast);
+  setTimeout(() => toast.remove(), 3200);
+}
+
+/* ============================================================
+   INIT
+============================================================ */
+// Populate demo library if empty
+if (state.library.length === 0) {
+  const demoContent1 = `The remarkable thing about language is its capacity for infinite creativity from finite means. Human beings can produce and understand sentences they have never encountered before — a property that linguists call creativity or productivity. This generativity is rooted in the recursive nature of grammar, allowing for embedding of clauses within clauses to theoretically unlimited depth. Chomsky's transformational-generative grammar sought to model this capacity formally, distinguishing between deep structure (underlying meaning) and surface structure (the spoken or written form).
+
+Dyslexia, a specific learning disability affecting reading acquisition, is not a reflection of intelligence or motivation. Rather, it stems from neurological differences in the processing of phonological information — the sounds of language and their correspondence to written symbols. Individuals with dyslexia may experience difficulty with decoding words, spelling, and reading fluency, despite possessing average or above-average intellectual ability.
+
+Research has consistently demonstrated that dyslexia is highly heritable, with multiple genes implicated in its etiology. Neuroimaging studies reveal differences in activation patterns within the left hemisphere language network, particularly in regions responsible for phonological processing. Early intervention, particularly phonics-based instruction, significantly improves reading outcomes.`;
+
+  const demoContent2 = `Quantum computing harnesses the principles of quantum mechanics to process information in fundamentally different ways from classical computers. While classical bits represent either 0 or 1, quantum bits (qubits) exploit superposition to exist in multiple states simultaneously. This property, combined with entanglement — a correlation between qubits that has no classical analog — enables quantum computers to explore many solutions in parallel.
+
+The potential applications of quantum computing are vast: breaking current encryption standards, simulating molecular interactions for drug discovery, optimizing complex logistical systems, and accelerating machine learning algorithms. However, maintaining quantum coherence — preventing qubits from losing their quantum properties through interaction with the environment (decoherence) — remains the central engineering challenge.
+
+Error correction, scalability, and the development of fault-tolerant quantum circuits are active areas of research. Current quantum computers are referred to as NISQ (Noisy Intermediate-Scale Quantum) devices — they have enough qubits to potentially demonstrate quantum advantage on specific problems, but are not yet fault-tolerant enough for general-purpose computation.`;
+
+  state.library = [
+    { id: 1, name: 'intro_linguistics.txt', ext: 'txt', content: demoContent1, size: 1.2, words: 220, saved: new Date().toLocaleDateString() },
+    { id: 2, name: 'quantum_computing.txt', ext: 'txt', content: demoContent2, size: 1.1, words: 195, saved: new Date().toLocaleDateString() },
+  ];
+  localStorage.setItem('minidox_library', JSON.stringify(state.library));
+}
+
+// Add default presets
+if (state.presets.length === 0) {
+  state.presets = [
+    { name: 'Study Mode', settings: { fontKey: 'openDyslexic', tint: '#fefce8', textColor: '#1f2937', highlightColor: '#fbbf24', letterSpacing: 0.05, wordSpacing: 0.1, lineHeight: 2.0, fontSize: 1.2, highlightSpeed: 2 }, created: Date.now() },
+    { name: 'Night Reading', settings: { fontKey: 'lexend', tint: '#0a0a0a', textColor: '#e5e7eb', highlightColor: '#6366f1', letterSpacing: 0.02, wordSpacing: 0.05, lineHeight: 1.8, fontSize: 1.15, highlightSpeed: 1.5 }, created: Date.now() },
+    { name: 'Quick Scan', settings: { fontKey: 'inter', tint: '#ffffff', textColor: '#111827', highlightColor: '#10b981', letterSpacing: 0, wordSpacing: 0, lineHeight: 1.5, fontSize: 1.0, highlightSpeed: 0.8 }, created: Date.now() },
+  ];
+  localStorage.setItem('minidox_presets', JSON.stringify(state.presets));
+}
+renderPresets();
+
+// Scroll observer
+const scrollObserver = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.1 });
+document.querySelectorAll('.animate-on-scroll').forEach(el => scrollObserver.observe(el));
+
+// Load default text into reader
+window.addEventListener('load', () => {
+  const defaultText = `The remarkable thing about language is its capacity for infinite creativity from finite means. Human beings can produce and understand sentences they have never encountered before — a property linguists call productivity.
+
+Dyslexia is not a reflection of intelligence or motivation. Rather, it stems from neurological differences in phonological processing — the sounds of language and their correspondence to written symbols. Individuals with dyslexia may experience difficulty with decoding words, spelling, and reading fluency, despite possessing average or above-average intellectual ability.
+
+MINIDOX helps you customize your reading experience. Adjust fonts, spacing, and background tints using the sidebar controls. Enable the word highlighter to focus on one word at a time. Save your settings as a named preset for instant recall on future visits.
+
+Try adjusting the Letter Spacing and Word Spacing sliders in the sidebar — notice how the text reflows instantly with zero perceptible lag. Switch the background tint to Soft Yellow to reduce contrast-induced visual stress. Enable Auto-advance to traverse this paragraph word-by-word at your chosen interval.`;
+
+  document.getElementById('inputArea').value = defaultText;
+  updateInputWordCount();
+  rehydrateReadingPane(defaultText);
+  applyReadingStyles();
+  renderLibrary();
+  renderPresets();
+});
+
+console.log('MINIDOX initialized. All systems operational.');
+</script>
+</body>
+</html>
